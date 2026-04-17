@@ -1,0 +1,242 @@
+[
+  {
+    "id": 101,
+    "name": "UltraBass Wireless Headphones",
+    "category": "Electronics",
+    "price": 149,
+    "rating": 4.8,
+    "stock": 26,
+    "description": "Premium over-ear headphones with hybrid ANC, 40-hour battery life, and soft memory-foam earcups for long listening sessions.",
+    "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 102,
+    "name": "PulseFit Smart Watch S2",
+    "category": "Wearables",
+    "price": 199,
+    "rating": 4.7,
+    "stock": 19,
+    "description": "Track workouts, sleep, and heart rate with GPS and a bright AMOLED display. Water resistant up to 50 meters.",
+    "image": "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 103,
+    "name": "Retro Canvas Sneakers",
+    "category": "Fashion",
+    "price": 89,
+    "rating": 4.5,
+    "stock": 41,
+    "description": "Breathable canvas upper with cushioned sole and minimalist profile for everyday comfort and style.",
+    "image": "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 104,
+    "name": "Storm Mini Bluetooth Speaker",
+    "category": "Electronics",
+    "price": 69,
+    "rating": 4.4,
+    "stock": 33,
+    "description": "Portable speaker with punchy bass, IPX7 waterproofing, and 14-hour playtime for travel or outdoor use.",
+    "image": "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 105,
+    "name": "Nordic Ceramic Mug Set (4)",
+    "category": "Home",
+    "price": 39,
+    "rating": 4.6,
+    "stock": 58,
+    "description": "Hand-finished ceramic mugs with matte glaze, 12oz capacity, microwave safe, and dishwasher safe.",
+    "image": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 106,
+    "name": "FlexArm LED Desk Lamp",
+    "category": "Home Office",
+    "price": 55,
+    "rating": 4.7,
+    "stock": 24,
+    "description": "Adjustable desk lamp with 5 color temperatures, 10 brightness levels, and touch controls.",
+    "image": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 107,
+    "name": "Commuter Backpack 30L",
+    "category": "Accessories",
+    "price": 74,
+    "rating": 4.6,
+    "stock": 29,
+    "description": "Water-resistant backpack with padded 16-inch laptop sleeve, quick-access pockets, and breathable back panel.",
+    "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 108,
+    "name": "RGB Mechanical Keyboard K87",
+    "category": "Gaming",
+    "price": 129,
+    "rating": 4.9,
+    "stock": 14,
+    "description": "Hot-swappable 87-key keyboard with tactile switches, tri-mode connectivity, and per-key RGB effects.",
+    "image": "https://images.unsplash.com/photo-1611078489935-0cb964de46d6?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 109,
+    "name": "Ergo Wireless Mouse Pro",
+    "category": "Home Office",
+    "price": 48,
+    "rating": 4.5,
+    "stock": 46,
+    "description": "Ergonomic vertical mouse with silent clicks, 3 DPI modes, and rechargeable battery.",
+    "image": "https://images.unsplash.com/photo-1527814050087-3793815479db?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 110,
+    "name": "4K USB-C Monitor 27\"",
+    "category": "Electronics",
+    "price": 329,
+    "rating": 4.8,
+    "stock": 11,
+    "description": "27-inch IPS monitor with 4K resolution, USB-C power delivery, and factory-calibrated color accuracy.",
+    "image": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 111,
+    "name": "Minimal Leather Wallet",
+    "category": "Accessories",
+    "price": 45,
+    "rating": 4.4,
+    "stock": 73,
+    "description": "Slim RFID-blocking wallet crafted from full-grain leather with quick card access slot.",
+    "image": "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 112,
+    "name": "Performance Running Shoes",
+    "category": "Fashion",
+    "price": 119,
+    "rating": 4.7,
+    "stock": 37,
+    "description": "Lightweight running shoes with energy-return foam and breathable knit upper for daily training.",
+    "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 113,
+    "name": "Smart Air Purifier",
+    "category": "Home",
+    "price": 179,
+    "rating": 4.6,
+    "stock": 22,
+    "description": "HEPA air purifier with app control, auto mode, and quiet night operation for rooms up to 40m².",
+    "image": "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 114,
+    "name": "Chef Knife Set (3)",
+    "category": "Home",
+    "price": 84,
+    "rating": 4.8,
+    "stock": 31,
+    "description": "High-carbon stainless steel knife trio with ergonomic handles and precision-honed edges.",
+    "image": "https://images.unsplash.com/photo-1593618998160-e34014e67546?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 115,
+    "name": "Yoga Mat Pro 6mm",
+    "category": "Sports",
+    "price": 42,
+    "rating": 4.5,
+    "stock": 64,
+    "description": "Non-slip, high-density yoga mat with alignment markers and carrying strap.",
+    "image": "https://images.unsplash.com/photo-1599447332412-6bc6830c815a?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 116,
+    "name": "Adjustable Dumbbell Pair",
+    "category": "Sports",
+    "price": 249,
+    "rating": 4.7,
+    "stock": 8,
+    "description": "Space-saving adjustable dumbbells from 5lb to 52.5lb with quick-change selector dial.",
+    "image": "https://images.unsplash.com/photo-1584863231364-2edc166de576?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 117,
+    "name": "Portable SSD 1TB",
+    "category": "Electronics",
+    "price": 109,
+    "rating": 4.9,
+    "stock": 27,
+    "description": "Ultra-fast USB 3.2 SSD with durable aluminum shell and cross-platform compatibility.",
+    "image": "https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 118,
+    "name": "Noise-Isolating Earbuds",
+    "category": "Electronics",
+    "price": 79,
+    "rating": 4.3,
+    "stock": 55,
+    "description": "True wireless earbuds with ENC mics, compact charging case, and 28-hour total battery.",
+    "image": "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f37?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 119,
+    "name": "Standing Desk Converter",
+    "category": "Home Office",
+    "price": 159,
+    "rating": 4.6,
+    "stock": 16,
+    "description": "Gas-spring height-adjustable desk converter with keyboard tray and stable steel frame.",
+    "image": "https://images.unsplash.com/photo-1486946255434-2466348c2166?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 120,
+    "name": "Linen Bedding Set Queen",
+    "category": "Home",
+    "price": 139,
+    "rating": 4.5,
+    "stock": 20,
+    "description": "Breathable stone-washed linen bedding set for year-round comfort and relaxed texture.",
+    "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 121,
+    "name": "Polarized Sunglasses",
+    "category": "Fashion",
+    "price": 59,
+    "rating": 4.4,
+    "stock": 66,
+    "description": "UV400 polarized lenses with lightweight frame and anti-scratch coating.",
+    "image": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 122,
+    "name": "Stainless Water Bottle 1L",
+    "category": "Accessories",
+    "price": 29,
+    "rating": 4.7,
+    "stock": 92,
+    "description": "Double-wall insulated bottle keeps drinks cold for 24h or hot for 12h.",
+    "image": "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 123,
+    "name": "Travel Neck Pillow Memory Foam",
+    "category": "Accessories",
+    "price": 24,
+    "rating": 4.3,
+    "stock": 79,
+    "description": "Ergonomic neck pillow with breathable cover and compact travel pouch.",
+    "image": "https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    "id": 124,
+    "name": "Action Camera 4K",
+    "category": "Electronics",
+    "price": 219,
+    "rating": 4.6,
+    "stock": 13,
+    "description": "Waterproof 4K action camera with stabilization, wide-angle lens, and accessory kit.",
+    "image": "https://images.unsplash.com/photo-1510127034890-ba27508e9f1c?auto=format&fit=crop&w=900&q=80"
+  }
+]

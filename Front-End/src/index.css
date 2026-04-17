@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --brand-50: #fff1ed;
+    --brand-100: #ffe4de;
+    --brand-300: #ff9f8f;
+    --brand-500: #ff6633;
+    --brand-600: #f53d2d;
+    --brand-700: #d93528;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+    font-family:
+      Inter,
+      system-ui,
+      -apple-system,
+      Segoe UI,
+      Roboto,
+      sans-serif;
+  }
+
+  * {
+    @apply border-slate-200;
+  }
+}
+
+@layer utilities {
+  .text-indigo-600 {
+    color: var(--brand-600) !important;
+  }
+
+  .text-indigo-700 {
+    color: var(--brand-700) !important;
+  }
+
+  .bg-indigo-50 {
+    background-color: var(--brand-50) !important;
+  }
+
+  .bg-indigo-100 {
+    background-color: var(--brand-100) !important;
+  }
+
+  .bg-indigo-600 {
+    background-color: var(--brand-600) !important;
+  }
+
+  .bg-indigo-700 {
+    background-color: var(--brand-700) !important;
+  }
+
+  .border-indigo-300 {
+    border-color: var(--brand-300) !important;
+  }
+
+  .border-indigo-500,
+  .border-indigo-600 {
+    border-color: var(--brand-500) !important;
+  }
+
+  .hover\:bg-indigo-50:hover {
+    background-color: var(--brand-50) !important;
+  }
+
+  .hover\:bg-indigo-700:hover {
+    background-color: var(--brand-700) !important;
+  }
+
+  .hover\:text-indigo-600:hover,
+  .hover\:text-indigo-700:hover {
+    color: var(--brand-600) !important;
+  }
+
+  .focus\:border-indigo-500:focus {
+    border-color: var(--brand-500) !important;
+  }
+
+  .focus\:ring-indigo-100:focus {
+    --tw-ring-color: var(--brand-100) !important;
+  }
+
+  .from-indigo-600 {
+    --tw-gradient-from: var(--brand-600) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(245 61 45 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops:
+      var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+
+  .to-violet-600 {
+    --tw-gradient-to: var(--brand-500) var(--tw-gradient-to-position) !important;
+  }
+}
