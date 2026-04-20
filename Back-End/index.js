@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 
 import productRouter from "./routes/productRoutes.js";
+import orderRouter from "./routes/orderRoutes.js";
 
 import CustomerRoute from "./routes/customerRoutes.js";
 
@@ -26,6 +27,7 @@ app.use(
 app.use(express.json({ limit: "5mb" }));
 
 app.use("/api/products", productRouter);
+app.use("/api/orders", orderRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello");

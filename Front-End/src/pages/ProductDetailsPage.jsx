@@ -185,11 +185,13 @@ function ProductDetailsPage() {
 
           {/* Stock */}
           <p
-            className={`text-sm font-medium ${product.stock <= 10 ? "text-red-500" : "text-emerald-600"}`}
+            className={`text-sm font-medium ${product.stock - quantity <= 10 ? "text-red-500" : "text-emerald-600"}`}
           >
-            {product.stock <= 10
-              ? `⚠ Only ${product.stock} left in stock`
-              : `✓ In stock (${product.stock} available)`}
+            {product.stock - quantity <= 0
+              ? `✗ Not enough stock`
+              : product.stock - quantity <= 10
+                ? `⚠ Only ${product.stock - quantity} left in stock`
+                : `✓ In stock (${product.stock - quantity} available)`}
           </p>
 
           {/* Quantity */}

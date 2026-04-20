@@ -5,25 +5,133 @@
 // this one file — your pages/components don't need to change.
 // ---------------------------------------------------------------------------
 
-import { products as mockProducts } from "../data/products";
+import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 const TOKEN_KEY = "shopbee_token";
 
+const apiClient = axios.create({
+  baseURL: API_BASE,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+function inferCategoryFromProduct(product) {
+  const text =
+    `${product?.category || ""} ${product?.name || ""} ${product?.slug || ""}`.toLowerCase();
+
+  if (/sneaker|jacket|fashion/.test(text)) return "Fashion";
+  if (/backpack|accessories|bag/.test(text)) return "Accessories";
+  if (/gaming|mouse|keyboard/.test(text)) return "Gaming";
+  if (/coffee|lamp|home|water\s*bottle/.test(text)) return "Home";
+  if (/headphone|watch|speaker|electronic|bluetooth/.test(text)) {
+    return "Electronics";
+  }
+  if (
+    /sport|fitness|gym|running|yoga|workout|dumbbell|jersey|athletic/.test(text)
+  ) {
+    return "Sports";
+  }
+
+  return "General";
+}
+
 function normalizeProduct(product) {
   if (!product) return product;
+
+  const category = product.category
+    ? String(product.category)
+    : inferCategoryFromProduct(product);
+
   return {
     ...product,
     id: product.id || product._id,
+    category,
   };
 }
 
 function normalizeUser(user) {
   if (!user) return user;
+
+  const fullName = String(user.name || "").trim();
+  const nameParts = fullName ? fullName.split(/\s+/) : [];
+  const firstName = user.firstName || nameParts[0] || "";
+  const lastName =
+    user.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(" ") : "");
+
+  const memberSince = user.memberSince
+    ? user.memberSince
+    : user.createdAt
+      ? new Date(user.createdAt).toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        })
+      : undefined;
+
   return {
     ...user,
     id: user.id || user._id,
+    firstName,
+    lastName,
+    name: fullName || `${firstName} ${lastName}`.trim(),
     role: String(user.role || "user").toLowerCase(),
+    memberSince,
+  };
+}
+
+function normalizeOrderProduct(item) {
+  if (!item) return item;
+
+  const linkedProduct = item.linkedProduct
+    ? {
+        ...item.linkedProduct,
+        id: item.linkedProduct.id || item.linkedProduct._id,
+        price: Number(item.linkedProduct.price || 0),
+        stock: Number(item.linkedProduct.stock || 0),
+        rating: Number(item.linkedProduct.rating || 0),
+        numReviews: Number(item.linkedProduct.numReviews || 0),
+      }
+    : null;
+
+  return {
+    ...item,
+    price: Number(item.price || 0),
+    quantity: Number(item.quantity || 0),
+    linkedProduct,
+  };
+}
+
+function normalizeOrder(order) {
+  if (!order) return order;
+
+  const normalizedProducts = Array.isArray(order.products)
+    ? order.products.map(normalizeOrderProduct)
+    : [];
+
+  const itemCount = Array.isArray(order.items)
+    ? order.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0)
+    : Number(order.itemsCount ?? order.items ?? normalizedProducts.length);
+
+  return {
+    ...order,
+    id:
+      order.id ||
+      (order.orderId ? `#${order.orderId}` : order._id ? `#${order._id}` : ""),
+    customer: order.customer || order.shipping?.fullName || "Customer",
+    email: order.email || order.shipping?.email || "",
+    date:
+      order.date ||
+      (order.createdAt
+        ? new Date(order.createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : ""),
+    products: normalizedProducts,
+    items: itemCount,
+    total: Number(order.total || 0),
   };
 }
 
@@ -36,33 +144,42 @@ function setToken(token) {
   else localStorage.removeItem(TOKEN_KEY);
 }
 
-async function fetchJSON(path, options = {}) {
+apiClient.interceptors.request.use((config) => {
   const token = getToken();
-  const headers = {
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-  };
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  } else if (config.headers?.Authorization) {
+    delete config.headers.Authorization;
+  }
 
-  let payload = null;
+  return config;
+});
+
+async function requestJSON(path, options = {}) {
   try {
-    payload = await res.json();
-  } catch {
-    payload = null;
-  }
+    const response = await apiClient({
+      url: path,
+      method: options.method || "GET",
+      data: options.body ? JSON.parse(options.body) : undefined,
+      headers: options.headers,
+    });
 
-  if (!res.ok) {
-    throw new Error(
-      payload?.error || payload?.message || `Request failed (${res.status})`,
-    );
-  }
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const payload = error.response?.data;
 
-  return payload;
+      throw new Error(
+        payload?.error ||
+          payload?.message ||
+          `Request failed (${status || "network error"})`,
+      );
+    }
+
+    throw error;
+  }
 }
 
 /** Simulate network latency in development */
@@ -73,19 +190,42 @@ const delay = (ms = 600) => new Promise((r) => setTimeout(r, ms));
 // ─────────────────────────────────────────────
 
 export async function getProducts() {
-  try {
-    const payload = await fetchJSON("/api/products");
-    const items = Array.isArray(payload) ? payload : payload?.products || [];
-    return items.map(normalizeProduct);
-  } catch {
-    await delay();
-    return [...mockProducts];
+  const { products } = await getProductsPage({ page: 1, limit: 50 });
+  return products;
+}
+
+export async function getProductsPage({
+  page = 1,
+  limit = 50,
+  search,
+  sortBy,
+  sort,
+  isFeatured,
+} = {}) {
+  const params = new URLSearchParams();
+  params.set("page", String(page));
+  params.set("limit", String(limit));
+  if (search) params.set("search", String(search));
+  if (sortBy) params.set("sortBy", String(sortBy));
+  if (sort) params.set("sort", String(sort));
+  if (typeof isFeatured === "boolean") {
+    params.set("isFeatured", String(isFeatured));
   }
+
+  const payload = await requestJSON(`/api/products?${params.toString()}`);
+  const items = Array.isArray(payload) ? payload : payload?.products || [];
+
+  return {
+    products: items.map(normalizeProduct),
+    totalProducts: Number(payload?.totalProducts || items.length || 0),
+    page: Number(payload?.page || page),
+    limit: Number(payload?.limit || limit),
+  };
 }
 
 export async function getProductById(id) {
   try {
-    const payload = await fetchJSON(`/api/products/${id}`);
+    const payload = await requestJSON(`/api/products/${id}`);
     const product = payload?.data || payload;
     return normalizeProduct(product);
   } catch (error) {
@@ -93,8 +233,7 @@ export async function getProductById(id) {
       return null;
     }
 
-    await delay(400);
-    return mockProducts.find((p) => p.id === Number(id)) ?? null;
+    throw error;
   }
 }
 
@@ -103,82 +242,37 @@ export async function getProductById(id) {
 // ─────────────────────────────────────────────
 
 export async function loginUser({ email, password }) {
-  try {
-    const payload = await fetchJSON("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
+  const payload = await requestJSON("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
 
-    setToken(payload.token);
-    const user = normalizeUser(payload.data || payload.user);
-    localStorage.setItem("shopbee_user", JSON.stringify(user));
-    return user;
-  } catch {
-    await delay(800);
-    if (!email || !password)
-      throw new Error("Email and password are required.");
-
-    const existing = JSON.parse(localStorage.getItem("shopbee_user") || "null");
-    if (existing && existing.email === email) return existing;
-
-    const user = {
-      id: 1,
-      email,
-      firstName: "John",
-      lastName: "Doe",
-      avatar: email[0].toUpperCase(),
-      memberSince: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      }),
-      role: email.toLowerCase().includes("admin") ? "admin" : "user",
-    };
-    localStorage.setItem("shopbee_user", JSON.stringify(user));
-    return user;
-  }
+  setToken(payload.token);
+  const user = normalizeUser(payload.data || payload.user);
+  localStorage.setItem("shopbee_user", JSON.stringify(user));
+  return user;
 }
 
 export async function registerUser({ firstName, lastName, email, password }) {
-  try {
-    const name = `${firstName || ""} ${lastName || ""}`.trim();
-    const generatedPhone = `9${Date.now().toString().slice(-9)}`;
-    const payload = await fetchJSON("/api/auth/register", {
-      method: "POST",
-      body: JSON.stringify({
-        name: name || email?.split("@")[0] || "User",
-        email,
-        password,
-        phone: generatedPhone,
-      }),
-    });
-
-    if (payload.token) {
-      setToken(payload.token);
-    }
-
-    const user = normalizeUser(payload.data || payload.user);
-    localStorage.setItem("shopbee_user", JSON.stringify(user));
-    return user;
-  } catch {
-    await delay(900);
-    if (!email || !password)
-      throw new Error("Please fill in all required fields.");
-
-    const user = {
-      id: Date.now(),
+  const name = `${firstName || ""} ${lastName || ""}`.trim();
+  const generatedPhone = `9${Date.now().toString().slice(-9)}`;
+  const payload = await requestJSON("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify({
+      name: name || email?.split("@")[0] || "User",
       email,
-      firstName,
-      lastName,
-      avatar: firstName ? firstName[0].toUpperCase() : email[0].toUpperCase(),
-      memberSince: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      }),
-      role: "user",
-    };
-    localStorage.setItem("shopbee_user", JSON.stringify(user));
-    return user;
+      password,
+      phone: generatedPhone,
+    }),
+  });
+
+  if (payload.token) {
+    setToken(payload.token);
   }
+
+  const user = normalizeUser(payload.data || payload.user);
+  localStorage.setItem("shopbee_user", JSON.stringify(user));
+  return user;
 }
 
 export async function logoutUser() {
@@ -189,78 +283,84 @@ export async function logoutUser() {
 
 export async function getCurrentUser() {
   try {
-    const payload = await fetchJSON("/api/auth/me");
+    const payload = await requestJSON("/api/auth/me");
     const user = normalizeUser(payload.data || payload.user);
     localStorage.setItem("shopbee_user", JSON.stringify(user));
     return user;
   } catch {
-    return JSON.parse(localStorage.getItem("shopbee_user") || "null");
+    setToken(null);
+    localStorage.removeItem("shopbee_user");
+    return null;
   }
+}
+
+export async function updateCurrentUser({
+  firstName,
+  lastName,
+  email,
+  password,
+}) {
+  const name = `${firstName || ""} ${lastName || ""}`.trim();
+  const payload = await requestJSON("/api/auth/me", {
+    method: "PATCH",
+    body: JSON.stringify({
+      ...(name ? { name } : {}),
+      ...(email ? { email } : {}),
+      ...(password ? { password } : {}),
+    }),
+  });
+
+  const user = normalizeUser(payload.data || payload.user);
+  localStorage.setItem("shopbee_user", JSON.stringify(user));
+  return user;
 }
 
 // ─────────────────────────────────────────────
 // Orders
 // ─────────────────────────────────────────────
 
-const mockOrders = [
-  {
-    id: "#ORD-8821",
-    date: "Mar 18, 2026",
-    total: 318,
-    status: "Delivered",
-    items: 3,
-  },
-  {
-    id: "#ORD-8819",
-    date: "Mar 10, 2026",
-    total: 79,
-    status: "Shipped",
-    items: 1,
-  },
-  {
-    id: "#ORD-8812",
-    date: "Feb 28, 2026",
-    total: 224,
-    status: "Delivered",
-    items: 2,
-  },
-  {
-    id: "#ORD-8801",
-    date: "Feb 14, 2026",
-    total: 35,
-    status: "Delivered",
-    items: 1,
-  },
-];
-
 export async function getOrders() {
-  try {
-    return await fetchJSON("/api/orders/mine");
-  } catch {
-    await delay(700);
-    return mockOrders;
-  }
+  const payload = await requestJSON("/api/orders/mine");
+  const items = Array.isArray(payload) ? payload : payload?.orders || [];
+  return items.map(normalizeOrder);
 }
 
 export async function placeOrder(orderData) {
-  try {
-    return await fetchJSON("/api/orders", {
-      method: "POST",
-      body: JSON.stringify(orderData),
-    });
-  } catch {
-    await delay(1000);
-    return { success: true, orderId: `ORD-${Date.now()}` };
-  }
+  const payload = await requestJSON("/api/orders", {
+    method: "POST",
+    body: JSON.stringify(orderData),
+  });
+  return {
+    ...payload,
+    order: normalizeOrder(payload?.order),
+  };
 }
 
 export async function getAdminOrders() {
-  return fetchJSON("/api/orders");
+  const payload = await requestJSON("/api/orders");
+  const items = Array.isArray(payload) ? payload : payload?.orders || [];
+  return items.map(normalizeOrder);
 }
 
 export async function updateOrderStatus(orderId, status) {
-  return fetchJSON(`/api/orders/${orderId}/status`, {
+  const payload = await requestJSON(`/api/orders/${orderId}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
   });
+
+  return {
+    ...payload,
+    order: normalizeOrder(payload?.order),
+  };
+}
+
+export async function cancelMyOrder(orderId) {
+  const payload = await requestJSON(`/api/orders/${orderId}/cancel`, {
+    method: "PATCH",
+  });
+
+  return {
+    ...payload,
+    order: normalizeOrder(payload?.order),
+  };
 }

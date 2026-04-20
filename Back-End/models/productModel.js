@@ -25,6 +25,19 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    category: {
+      type: String,
+      required: true,
+      enum: [
+        "Electronics",
+        "Fashion",
+        "Home",
+        "Gaming",
+        "Accessories",
+        "Sports",
+      ],
+      default: "Electronics",
+    },
     stock: {
       type: Number,
       required: true,
@@ -54,6 +67,7 @@ const productSchema = new mongoose.Schema(
 );
 
 productSchema.index({ slug: 1, isFeatured: 1, price: 1 });
+productSchema.index({ isDeleted: 1, category: 1, isFeatured: 1, price: 1 });
 
 const ProductModel = mongoose.model("products", productSchema);
 

@@ -11,6 +11,34 @@ const statusStyles = {
   Cancelled: "bg-red-100 text-red-700",
 };
 
+function OrderProductsCell({ order }) {
+  const previewItems = Array.isArray(order.products)
+    ? order.products.slice(0, 2)
+    : [];
+
+  if (previewItems.length === 0) {
+    return <p className="text-xs text-slate-400">No product details</p>;
+  }
+
+  return (
+    <div className="space-y-1">
+      {previewItems.map((item, index) => (
+        <p
+          key={`${order.id}-${item.productId}-${index}`}
+          className="truncate text-xs text-slate-500"
+        >
+          {item.name} × {item.quantity}
+        </p>
+      ))}
+      {order.products.length > previewItems.length && (
+        <p className="text-xs text-slate-400">
+          +{order.products.length - previewItems.length} more
+        </p>
+      )}
+    </div>
+  );
+}
+
 function AdminOrdersPage() {
   const { toast } = useToast();
   const [filter, setFilter] = useState("All");
@@ -92,6 +120,7 @@ function AdminOrdersPage() {
               {[
                 "Order ID",
                 "Customer",
+                "Products",
                 "Date",
                 "Items",
                 "Total",
@@ -116,6 +145,9 @@ function AdminOrdersPage() {
                 <td className="px-4 py-3">
                   <p className="font-medium text-slate-900">{order.customer}</p>
                   <p className="text-xs text-slate-400">{order.email}</p>
+                </td>
+                <td className="px-4 py-3">
+                  <OrderProductsCell order={order} />
                 </td>
                 <td className="px-4 py-3 text-slate-600">{order.date}</td>
                 <td className="px-4 py-3 text-slate-600">{order.items}</td>
@@ -148,7 +180,7 @@ function AdminOrdersPage() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-slate-400">
+                <td colSpan={8} className="py-12 text-center text-slate-400">
                   No orders found.
                 </td>
               </tr>

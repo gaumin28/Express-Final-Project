@@ -1,17 +1,66 @@
-import { useState } from "react";
-import { products as initialProducts } from "../../data/products";
+import { useEffect, useState } from "react";
+import { getProductsPage } from "../../services/api";
 
 function AdminProductsPage() {
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
 
-  const filtered = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase()),
+  const PAGE_SIZE = 25;
+  const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
+
+  const pageWindowStart = Math.max(1, page - 2);
+  const pageWindowEnd = Math.min(totalPages, page + 2);
+  const visiblePages = Array.from(
+    { length: pageWindowEnd - pageWindowStart + 1 },
+    (_, index) => pageWindowStart + index,
   );
+
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 350);
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [search]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getProductsPage({
+      page,
+      limit: PAGE_SIZE,
+      search: debouncedSearch || undefined,
+      sortBy: "createdAt",
+      sort: "desc",
+    })
+      .then((result) => {
+        if (!cancelled) {
+          setProducts(result.products);
+          setTotalProducts(result.totalProducts);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProducts([]);
+          setTotalProducts(0);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [page, debouncedSearch]);
 
   function handleDelete(id) {
     if (confirm("Delete this product?")) {
@@ -35,7 +84,9 @@ function AdminProductsPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Products</h1>
           <p className="text-sm text-slate-500">
-            {products.length} total products
+            {loading
+              ? "Loading products..."
+              : `${totalProducts.toLocaleString()} total products`}
           </p>
         </div>
         <button
@@ -54,7 +105,11 @@ function AdminProductsPage() {
         type="text"
         placeholder="Search products..."
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => {
+          setLoading(true);
+          setSearch(e.target.value);
+          setPage(1);
+        }}
         className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 sm:max-w-xs"
       />
 
@@ -81,7 +136,7 @@ function AdminProductsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filtered.map((product) => (
+            {products.map((product) => (
               <tr key={product.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -127,7 +182,7 @@ function AdminProductsPage() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {products.length === 0 && (
               <tr>
                 <td colSpan={6} className="py-12 text-center text-slate-400">
                   No products found.
@@ -136,6 +191,88 @@ function AdminProductsPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm">
+        <p className="text-slate-500">
+          Page {page} of {totalPages}
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setLoading(true);
+              setPage((p) => Math.max(1, p - 1));
+            }}
+            disabled={page <= 1 || loading}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          {pageWindowStart > 1 && (
+            <>
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  setPage(1);
+                }}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 font-semibold text-slate-700"
+              >
+                1
+              </button>
+              {pageWindowStart > 2 && (
+                <span className="px-1 text-slate-400">…</span>
+              )}
+            </>
+          )}
+
+          {visiblePages.map((pageNumber) => (
+            <button
+              key={pageNumber}
+              onClick={() => {
+                if (pageNumber === page) return;
+                setLoading(true);
+                setPage(pageNumber);
+              }}
+              disabled={pageNumber === page}
+              className={`rounded-lg border px-3 py-1.5 font-semibold ${
+                pageNumber === page
+                  ? "border-indigo-600 bg-indigo-600 text-white"
+                  : "border-slate-300 text-slate-700"
+              }`}
+            >
+              {pageNumber}
+            </button>
+          ))}
+
+          {pageWindowEnd < totalPages && (
+            <>
+              {pageWindowEnd < totalPages - 1 && (
+                <span className="px-1 text-slate-400">…</span>
+              )}
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  setPage(totalPages);
+                }}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 font-semibold text-slate-700"
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+
+          <button
+            onClick={() => {
+              setLoading(true);
+              setPage((p) => Math.min(totalPages, p + 1));
+            }}
+            disabled={page >= totalPages || loading}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       {/* Add / Edit modal */}

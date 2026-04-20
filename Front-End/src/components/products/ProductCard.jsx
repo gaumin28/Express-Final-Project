@@ -1,6 +1,20 @@
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/useCart";
 
+const FALLBACK_IMAGE_BY_CATEGORY = {
+  Electronics:
+    "https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
+  Fashion:
+    "https://images.pexels.com/photos/934070/pexels-photo-934070.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
+  Home: "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
+  Gaming:
+    "https://images.pexels.com/photos/7915357/pexels-photo-7915357.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
+  Accessories:
+    "https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
+  Sports:
+    "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
+};
+
 function ProductCard({ product }) {
   const { addToCart, toggleWishlist, isWishlisted } = useCart();
   const wishlisted = isWishlisted(product.id);
@@ -32,6 +46,12 @@ function ProductCard({ product }) {
         <img
           src={product.image}
           alt={product.name}
+          onError={(event) => {
+            event.currentTarget.onerror = null;
+            event.currentTarget.src =
+              FALLBACK_IMAGE_BY_CATEGORY[product.category] ||
+              "https://placehold.co/800x800/1e293b/ffffff?text=Product";
+          }}
           className="h-52 w-full object-cover transition duration-300 group-hover:scale-[1.02]"
         />
       </Link>

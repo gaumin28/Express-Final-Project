@@ -1,10 +1,30 @@
 import { NavLink, Outlet } from "react-router-dom";
+import dashboardSvg from "../../assets/dash-board.svg";
+import productIcon from "../../assets/product-icon.svg";
+import receipt from "../../assets/receipt-solid.svg";
+import user from "../../assets/user-regular.svg";
 
 const adminLinks = [
-  { label: "Dashboard", to: "/admin", icon: "📊" },
-  { label: "Products", to: "/admin/products", icon: "📦" },
-  { label: "Orders", to: "/admin/orders", icon: "🛒" },
-  { label: "Users", to: "/admin/users", icon: "👥" },
+  {
+    label: "Dashboard",
+    to: "/admin",
+    icon: <img src={dashboardSvg} alt="" className="h-4 w-4" />,
+  },
+  {
+    label: "Products",
+    to: "/admin/products",
+    icon: <img src={productIcon} alt="" className="h-4 w-4" />,
+  },
+  {
+    label: "Orders",
+    to: "/admin/orders",
+    icon: <img src={receipt} alt="" className="h-4 w-4" />,
+  },
+  {
+    label: "Users",
+    to: "/admin/users",
+    icon: <img src={user} alt="" className="h-4 w-4" />,
+  },
 ];
 
 function AdminLayout() {

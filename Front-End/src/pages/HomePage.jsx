@@ -1,16 +1,46 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../components/products/ProductCard";
-import { products } from "../data/products";
+import { getProducts } from "../services/api";
 import ps5 from "../image/ps5.jpg";
 import adidas from "../image/adidas-sneakers.webp";
 import Apple from "../image/Apple-iPhone-17.jpg";
 
-const categories = ["Electronics", "Fashion", "Home", "Gaming", "Accessories"];
+const categories = [
+  "All",
+  "Electronics",
+  "Fashion",
+  "Home",
+  "Gaming",
+  "Accessories",
+  "Sports",
+];
 const images = [ps5, adidas, Apple];
 
 function HomePage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [products, setProducts] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getProducts()
+      .then((items) => {
+        if (!cancelled) {
+          setProducts(items);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProducts([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handlePrevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
@@ -19,6 +49,11 @@ function HomePage() {
   const handleNextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
+
+  const filteredProducts =
+    selectedCategory === "All"
+      ? products
+      : products.filter((product) => product.category === selectedCategory);
 
   return (
     <div className="space-y-12">
@@ -82,8 +117,9 @@ function HomePage() {
             Discover products you will love.
           </h1>
           <p className="text-sm text-indigo-100 sm:text-base">
-            Build your MERN store with a modern, scalable frontend. Start from
-            this landing page and connect APIs next.
+            Shop trending products, discover great deals, and enjoy a smooth
+            checkout experience—all in one modern eShop built for everyday
+            shopping.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
@@ -119,7 +155,12 @@ function HomePage() {
           {categories.map((category) => (
             <button
               key={category}
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-indigo-300 hover:text-indigo-600"
+              onClick={() => setSelectedCategory(category)}
+              className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                selectedCategory === category
+                  ? "border-indigo-600 bg-indigo-600 text-white"
+                  : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:text-indigo-600"
+              }`}
             >
               {category}
             </button>
@@ -141,7 +182,7 @@ function HomePage() {
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {products.slice(0, 6).map((product) => (
+          {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>

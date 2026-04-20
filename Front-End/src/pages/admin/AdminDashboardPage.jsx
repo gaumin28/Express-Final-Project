@@ -1,4 +1,5 @@
-import { products } from "../../data/products";
+import { useEffect, useState } from "react";
+import { getProducts } from "../../services/api";
 
 const stats = [
   {
@@ -52,6 +53,28 @@ const statusStyles = {
 };
 
 function AdminDashboardPage() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getProducts()
+      .then((items) => {
+        if (!cancelled) {
+          setProducts(items);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProducts([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="space-y-8">
       <div>

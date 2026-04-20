@@ -12,6 +12,8 @@ export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
+      const token = localStorage.getItem("shopbee_token");
+      if (!token) return null;
       return JSON.parse(localStorage.getItem("shopbee_user")) ?? null;
     } catch {
       return null;

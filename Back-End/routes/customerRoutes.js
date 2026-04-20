@@ -7,6 +7,7 @@ import validateExistedCustomer, {
 import createCustomer, {
   getCurrentCustomer,
   loginCustomer,
+  updateCurrentCustomer,
 } from "../controllers/customerController.js";
 
 const CustomerRoute = Router();
@@ -19,6 +20,7 @@ CustomerRoute.post(
 );
 CustomerRoute.post("/login", validateLoginPayload, loginCustomer);
 CustomerRoute.get("/me", validateCustomerToken, getCurrentCustomer);
+CustomerRoute.patch("/me", validateCustomerToken, updateCurrentCustomer);
 CustomerRoute.get("/validate-token", validateCustomerToken, (req, res) => {
   return res.status(200).json({
     message: "Token is valid",

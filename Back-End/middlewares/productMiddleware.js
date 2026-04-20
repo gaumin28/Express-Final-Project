@@ -10,6 +10,8 @@ export const validateGenerateProductsPayload = (req, res, next) => {
   const rawCount = req.body?.count ?? req.query?.count;
   const rawBatchSize = req.body?.batchSize ?? req.query?.batchSize;
   const rawClearExisting = req.body?.clearExisting ?? req.query?.clearExisting;
+  const rawSource = req.body?.source ?? req.query?.source;
+  const rawCategory = req.body?.category ?? req.query?.category;
 
   if (hasValue(rawCount)) {
     const count = toNumber(rawCount);
@@ -43,6 +45,36 @@ export const validateGenerateProductsPayload = (req, res, next) => {
     if (!validValues.includes(normalized)) {
       return res.status(400).json({
         error: "clearExisting must be true, false, 1, or 0",
+      });
+    }
+  }
+
+  if (hasValue(rawSource)) {
+    const normalizedSource = String(rawSource).trim().toLowerCase();
+    const validSources = ["real", "synthetic"];
+
+    if (!validSources.includes(normalizedSource)) {
+      return res.status(400).json({
+        error: "source must be either real or synthetic",
+      });
+    }
+  }
+
+  if (hasValue(rawCategory)) {
+    const normalizedCategory = String(rawCategory).trim().toLowerCase();
+    const validCategories = [
+      "electronics",
+      "fashion",
+      "home",
+      "gaming",
+      "accessories",
+      "sports",
+    ];
+
+    if (!validCategories.includes(normalizedCategory)) {
+      return res.status(400).json({
+        error:
+          "category must be one of Electronics, Fashion, Home, Gaming, Accessories, Sports",
       });
     }
   }

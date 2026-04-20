@@ -102,7 +102,7 @@ function Navbar() {
                   className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
                 >
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
-                    {user.avatar || user.email[0].toUpperCase()}
+                    {user.avatar || user?.firstName?.toUpperCase()[0]}
                   </span>
                   {user.firstName || "Account"}
                 </Link>
