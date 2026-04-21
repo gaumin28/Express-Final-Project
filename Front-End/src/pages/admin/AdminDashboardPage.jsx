@@ -1,49 +1,9 @@
 import { useEffect, useState } from "react";
-import { getProducts } from "../../services/api";
-
-const stats = [
-  {
-    label: "Total revenue",
-    value: "$12,480",
-    change: "+12%",
-    up: true,
-    icon: "💰",
-  },
-  { label: "Orders", value: "148", change: "+8%", up: true, icon: "🛒" },
-  { label: "Products", value: "8", change: "active", up: true, icon: "📦" },
-  { label: "Customers", value: "94", change: "+5%", up: true, icon: "👥" },
-];
-
-const recentOrders = [
-  {
-    id: "#ORD-8830",
-    customer: "Alice Brown",
-    date: "Mar 22, 2026",
-    total: "$189",
-    status: "Processing",
-  },
-  {
-    id: "#ORD-8829",
-    customer: "Bob Smith",
-    date: "Mar 21, 2026",
-    total: "$79",
-    status: "Shipped",
-  },
-  {
-    id: "#ORD-8828",
-    customer: "Carol White",
-    date: "Mar 20, 2026",
-    total: "$224",
-    status: "Delivered",
-  },
-  {
-    id: "#ORD-8827",
-    customer: "Dan Lee",
-    date: "Mar 19, 2026",
-    total: "$35",
-    status: "Delivered",
-  },
-];
+import { getAdminOrders, getProductsPage } from "../../services/api";
+import cartIcon from "../../assets/cart-plus-solid.png";
+import productIcon from "../../assets/product-icon.svg";
+import revenue from "../../assets/revenue.svg";
+import userIcon from "../../assets/user-regular.svg";
 
 const statusStyles = {
   Delivered: "bg-emerald-100 text-emerald-700",
@@ -54,19 +14,28 @@ const statusStyles = {
 
 function AdminDashboardPage() {
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [productsCount, setProductsCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
-    getProducts()
-      .then((items) => {
+    Promise.all([
+      getProductsPage({ page: 1, limit: 100, sortBy: "stock", sort: "asc" }),
+      getAdminOrders(),
+    ])
+      .then(([productsResult, adminOrders]) => {
         if (!cancelled) {
-          setProducts(items);
+          setProducts(productsResult.products || []);
+          setProductsCount(Number(productsResult.totalProducts || 0));
+          setOrders(Array.isArray(adminOrders) ? adminOrders : []);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setProducts([]);
+          setProductsCount(0);
+          setOrders([]);
         }
       });
 
@@ -74,6 +43,66 @@ function AdminDashboardPage() {
       cancelled = true;
     };
   }, []);
+
+  const isFulfilledStatus = (status) => {
+    const normalized = String(status || "")
+      .trim()
+      .toLowerCase();
+    return normalized === "delivered" || normalized === "shipped";
+  };
+
+  const toNumericAmount = (value) => {
+    if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+    const parsed = Number(String(value || "").replace(/[^\d.-]/g, ""));
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const totalRevenue = orders
+    .filter((order) => isFulfilledStatus(order.status))
+    .reduce((sum, order) => sum + toNumericAmount(order.total), 0);
+
+  const uniqueCustomers = new Set(
+    orders.map((order) => order.email || order.customer || order.id),
+  ).size;
+
+  const stats = [
+    {
+      label: "Total revenue",
+      value: `$${totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+      change: "live",
+      up: true,
+      icon: <img src={revenue} alt="revenue-icon" className="w-6 h-6" />,
+    },
+    {
+      label: "Orders",
+      value: orders.length.toLocaleString(),
+      change: "live",
+      up: true,
+      icon: <img src={cartIcon} alt="cart-icon" className="w-6 h-6" />,
+    },
+    {
+      label: "Products",
+      value: productsCount.toLocaleString(),
+      change: "active",
+      up: true,
+      icon: <img src={productIcon} alt="product-icon" className="w-6 h-6" />,
+    },
+    {
+      label: "Customers",
+      value: uniqueCustomers.toLocaleString(),
+      change: "live",
+      up: true,
+      icon: <img src={userIcon} alt="user-icon" className="w-6 h-6" />,
+    },
+  ];
+
+  const recentOrders = [...orders]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt || b.date || 0).getTime() -
+        new Date(a.createdAt || a.date || 0).getTime(),
+    )
+    .slice(0, 5);
 
   return (
     <div className="space-y-8">
@@ -101,7 +130,7 @@ function AdminDashboardPage() {
             <p
               className={`mt-1 text-xs font-semibold ${stat.up ? "text-emerald-600" : "text-red-500"}`}
             >
-              {stat.change} vs last month
+              {stat.change}
             </p>
           </div>
         ))}
@@ -142,10 +171,20 @@ function AdminDashboardPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 font-semibold text-slate-900">
-                      {order.total}
+                      ${Number(order.total || 0).toFixed(2)}
                     </td>
                   </tr>
                 ))}
+                {recentOrders.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-4 py-10 text-center text-slate-400"
+                    >
+                      No orders yet.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

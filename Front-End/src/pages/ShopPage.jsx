@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/products/ProductCard";
 import { getProductsPage } from "../services/api";
 import searchIcon from "../image/search-icon.png";
@@ -28,25 +29,25 @@ const SORT_OPTIONS = [
 ];
 
 function ShopPage() {
+  const [searchParams] = useSearchParams();
+  const selectedCategory = searchParams.get("category") || "";
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("featured");
   const [page, setPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const PAGE_SIZE = 24;
 
   const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [search]);
+  const handleSearch = () => {
+    setLoading(true);
+    setPage(1);
+    setSearch(searchInput.trim());
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -58,12 +59,13 @@ function ShopPage() {
           ? { sortBy: "price", sort: "desc" }
           : sort === "rating"
             ? { sortBy: "rating", sort: "desc" }
-            : { isFeatured: true, sortBy: "createdAt", sort: "desc" };
+            : { sortBy: "featured", sort: "desc" };
 
     getProductsPage({
       page,
       limit: PAGE_SIZE,
-      search: debouncedSearch,
+      search,
+      category: selectedCategory || undefined,
       ...sortQuery,
     })
       .then((result) => {
@@ -84,19 +86,21 @@ function ShopPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, sort, debouncedSearch]);
+  }, [page, sort, search, selectedCategory]);
 
   return (
     <section className="space-y-6">
       <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Shop</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <h1 className="text-2xl font-bold text-slate-900">
+              Shop {selectedCategory ? `- ${selectedCategory}` : ""}
+            </h1>
+            {/* <p className="mt-1 text-sm text-slate-500">
               {loading
                 ? "Loading products…"
                 : `${totalProducts.toLocaleString()} products`}
-            </p>
+            </p> */}
           </div>
 
           <div className="flex gap-3">
@@ -122,14 +126,17 @@ function ShopPage() {
           <input
             type="text"
             placeholder="Search products..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearch();
+              }
+            }}
             className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none"
           />
           <button
-            onClick={() => {
-              setPage(1);
-            }}
+            onClick={handleSearch}
             className="rounded-xl bg-indigo-600 px-6 py-2.5 font-semibold text-white transition hover:bg-indigo-700 active:scale-[0.99] flex gap-2"
           >
             <img src={searchIcon} alt="search-icon" /> <span>Search</span>

@@ -8,6 +8,9 @@ import createCustomer, {
   getCurrentCustomer,
   loginCustomer,
   updateCurrentCustomer,
+  getAllCustomers,
+  updateCustomerById,
+  deleteCustomerById,
 } from "../controllers/customerController.js";
 
 const CustomerRoute = Router();
@@ -27,5 +30,18 @@ CustomerRoute.get("/validate-token", validateCustomerToken, (req, res) => {
     data: req.customer,
   });
 });
+
+// Admin routes for managing customers
+CustomerRoute.get("/customers", validateCustomerToken, getAllCustomers);
+CustomerRoute.patch(
+  "/customers/:id",
+  validateCustomerToken,
+  updateCustomerById,
+);
+CustomerRoute.delete(
+  "/customers/:id",
+  validateCustomerToken,
+  deleteCustomerById,
+);
 
 export default CustomerRoute;

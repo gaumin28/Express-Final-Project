@@ -86,7 +86,7 @@ const getCurrentCustomer = async (req, res) => {
 
 const updateCurrentCustomer = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
     const updates = {};
 
     if (name !== undefined) {
@@ -122,6 +122,13 @@ const updateCurrentCustomer = async (req, res, next) => {
       }
 
       updates.email = normalizedEmail;
+    }
+    if (phone !== undefined) {
+      const existedCustomer = await CustomerModel.findOne({ phone });
+      if (existedCustomer) {
+        throw createHttpError(409, "Phone already in use");
+      }
+      updates.phone = phone;
     }
 
     if (password !== undefined && password !== "") {
@@ -164,5 +171,72 @@ const updateCurrentCustomer = async (req, res, next) => {
   }
 };
 
+const getAllCustomers = async (req, res, next) => {
+  try {
+    const customers = await CustomerModel.find({ isActive: true }).select(
+      "-password",
+    );
+    return res.status(200).json({
+      message: "Success",
+      customers,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const updateCustomerById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, email, role } = req.body;
+    const updates = {};
+
+    if (name !== undefined) updates.name = name;
+    if (email !== undefined) updates.email = email;
+    if (role !== undefined) updates.role = role;
+
+    const updatedCustomer = await CustomerModel.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
+    if (!updatedCustomer) {
+      throw createHttpError(404, "Customer not found");
+    }
+
+    return res.status(200).json({
+      message: "Customer updated successfully",
+      customer: updatedCustomer,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const deleteCustomerById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const customer = await CustomerModel.findById(id);
+
+    if (!customer) {
+      throw createHttpError(404, "Customer not found");
+    }
+    customer.isActive = false;
+    await customer.save();
+    return res.status(200).json({
+      message: "Customer deleted successfully",
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export default createCustomer;
-export { loginCustomer, getCurrentCustomer, updateCurrentCustomer };
+export {
+  loginCustomer,
+  getCurrentCustomer,
+  updateCurrentCustomer,
+  getAllCustomers,
+  updateCustomerById,
+  deleteCustomerById,
+};

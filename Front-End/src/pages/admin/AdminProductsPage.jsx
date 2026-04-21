@@ -1,15 +1,31 @@
 import { useEffect, useState } from "react";
-import { getProductsPage } from "../../services/api";
+import {
+  addProduct,
+  getProductsPage,
+  updateProduct,
+  deleteProduct,
+} from "../../services/api";
+
+const EMPTY_FORM = {
+  name: "",
+  category: "",
+  price: "",
+  stock: "",
+  description: "",
+};
 
 function AdminProductsPage() {
   const [products, setProducts] = useState([]);
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [formError, setFormError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const PAGE_SIZE = 25;
   const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
@@ -21,15 +37,11 @@ function AdminProductsPage() {
     (_, index) => pageWindowStart + index,
   );
 
-  useEffect(() => {
-    const timerId = setTimeout(() => {
-      setDebouncedSearch(search.trim());
-    }, 350);
-
-    return () => {
-      clearTimeout(timerId);
-    };
-  }, [search]);
+  const handleSearch = () => {
+    setLoading(true);
+    setPage(1);
+    setSearch(searchInput.trim());
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -37,7 +49,7 @@ function AdminProductsPage() {
     getProductsPage({
       page,
       limit: PAGE_SIZE,
-      search: debouncedSearch || undefined,
+      search: search || undefined,
       sortBy: "createdAt",
       sort: "desc",
     })
@@ -60,22 +72,78 @@ function AdminProductsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, debouncedSearch]);
+  }, [page, search]);
 
-  function handleDelete(id) {
-    if (confirm("Delete this product?")) {
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+  async function handleDelete(id) {
+    if (!confirm("Delete this product?")) return;
+
+    const previous = products;
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+
+    try {
+      await deleteProduct(id);
+      setTotalProducts((n) => Math.max(0, n - 1));
+    } catch (error) {
+      setProducts(previous);
+      alert(error.message || "Failed to delete product. Please try again.");
     }
   }
 
   function handleEdit(product) {
     setEditProduct(product);
+    setFormData({
+      name: product?.name || "",
+      category: product?.category || "",
+      price: product?.price ?? "",
+      stock: product?.stock ?? "",
+      description: product?.description || "",
+    });
+    setFormError("");
     setShowForm(true);
   }
 
   function handleCloseForm() {
     setShowForm(false);
     setEditProduct(null);
+    setFormData(EMPTY_FORM);
+    setFormError("");
+    setSaving(false);
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    setSaving(true);
+    setFormError("");
+
+    try {
+      const payload = {
+        name: formData.name,
+        category: formData.category,
+        price: Number(formData.price),
+        stock: Number(formData.stock),
+        description: formData.description,
+      };
+
+      if (editProduct?.id) {
+        const updatedProduct = await updateProduct(editProduct.id, payload);
+
+        setProducts((prev) =>
+          prev.map((product) =>
+            product.id === updatedProduct.id ? updatedProduct : product,
+          ),
+        );
+      } else {
+        const createdProduct = await addProduct(payload);
+        setProducts((prev) => [createdProduct, ...prev]);
+        setTotalProducts((n) => n + 1);
+      }
+
+      handleCloseForm();
+    } catch (error) {
+      setFormError(error.message || "Failed to save product changes.");
+      setSaving(false);
+    }
   }
 
   return (
@@ -92,6 +160,8 @@ function AdminProductsPage() {
         <button
           onClick={() => {
             setEditProduct(null);
+            setFormData(EMPTY_FORM);
+            setFormError("");
             setShowForm(true);
           }}
           className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition"
@@ -101,17 +171,26 @@ function AdminProductsPage() {
       </div>
 
       {/* Search */}
-      <input
-        type="text"
-        placeholder="Search products..."
-        value={search}
-        onChange={(e) => {
-          setLoading(true);
-          setSearch(e.target.value);
-          setPage(1);
-        }}
-        className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 sm:max-w-xs"
-      />
+      <div className="flex w-full gap-3 sm:max-w-xs">
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSearch();
+            }
+          }}
+          className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+        />
+        <button
+          onClick={handleSearch}
+          className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+        >
+          Search
+        </button>
+      </div>
 
       {/* Table */}
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
@@ -296,32 +375,26 @@ function AdminProductsPage() {
                 ✕
               </button>
             </div>
-            <form
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleCloseForm();
-              }}
-            >
+            <form className="space-y-4" onSubmit={handleSubmit}>
               {[
                 {
+                  key: "name",
                   label: "Product name",
-                  defaultValue: editProduct?.name,
                   placeholder: "e.g. Wireless Keyboard",
                 },
                 {
+                  key: "category",
                   label: "Category",
-                  defaultValue: editProduct?.category,
                   placeholder: "e.g. Electronics",
                 },
                 {
+                  key: "price",
                   label: "Price ($)",
-                  defaultValue: editProduct?.price,
                   placeholder: "0.00",
                 },
                 {
+                  key: "stock",
                   label: "Stock",
-                  defaultValue: editProduct?.stock,
                   placeholder: "0",
                 },
               ].map((field) => (
@@ -330,8 +403,15 @@ function AdminProductsPage() {
                     {field.label}
                   </label>
                   <input
-                    defaultValue={field.defaultValue}
+                    value={formData[field.key]}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        [field.key]: e.target.value,
+                      }))
+                    }
                     placeholder={field.placeholder}
+                    disabled={saving}
                     className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                   />
                 </div>
@@ -341,24 +421,42 @@ function AdminProductsPage() {
                   Description
                 </label>
                 <textarea
-                  defaultValue={editProduct?.description}
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
                   rows={3}
+                  disabled={saving}
                   className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 resize-none"
                 />
               </div>
+              {formError && (
+                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {formError}
+                </p>
+              )}
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={handleCloseForm}
+                  disabled={saving}
                   className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
+                  disabled={saving}
                   className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition"
                 >
-                  {editProduct ? "Save changes" : "Add product"}
+                  {saving
+                    ? "Saving..."
+                    : editProduct
+                      ? "Save changes"
+                      : "Add product"}
                 </button>
               </div>
             </form>

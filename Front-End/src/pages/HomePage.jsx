@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../components/products/ProductCard";
-import { getProducts } from "../services/api";
+import { getProductsPage } from "../services/api";
 import ps5 from "../image/ps5.jpg";
 import adidas from "../image/adidas-sneakers.webp";
 import Apple from "../image/Apple-iPhone-17.jpg";
@@ -20,15 +20,19 @@ const images = [ps5, adidas, Apple];
 function HomePage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [products, setProducts] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("All");
 
   useEffect(() => {
     let cancelled = false;
 
-    getProducts()
-      .then((items) => {
+    getProductsPage({
+      page: 1,
+      limit: 18,
+      sortBy: "featured",
+      sort: "desc",
+    })
+      .then((result) => {
         if (!cancelled) {
-          setProducts(items);
+          setProducts(result.products);
         }
       })
       .catch(() => {
@@ -49,11 +53,6 @@ function HomePage() {
   const handleNextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
-
-  const filteredProducts =
-    selectedCategory === "All"
-      ? products
-      : products.filter((product) => product.category === selectedCategory);
 
   return (
     <div className="space-y-12">
@@ -141,29 +140,25 @@ function HomePage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
-            Browse categories
+            Categories
           </h2>
-          <Link
+          {/* <Link
             to="/shop"
             className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
           >
             View all
-          </Link>
+          </Link> */}
         </div>
 
         <div className="flex flex-wrap gap-3">
-          {categories.map((category) => (
-            <button
+          {categories.toSpliced(0, 1).map((category) => (
+            <Link
               key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-                selectedCategory === category
-                  ? "border-indigo-600 bg-indigo-600 text-white"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:text-indigo-600"
-              }`}
+              to={`/shop?category=${encodeURIComponent(category)}`}
+              className="flex h-40 w-30 items-center justify-center rounded border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-600"
             >
               {category}
-            </button>
+            </Link>
           ))}
         </div>
       </section>
@@ -182,7 +177,7 @@ function HomePage() {
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>

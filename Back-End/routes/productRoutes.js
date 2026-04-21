@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  addProduct,
   deleteProducts,
   generateProducts,
   getProductById,
@@ -21,6 +22,7 @@ productRouter.post(
   validateGenerateProductsPayload,
   generateProducts,
 );
+productRouter.post("/", validateCustomerToken, validateAdminRole, addProduct);
 
 productRouter.get("", getProducts);
 productRouter.get("/:productId", getProductById);

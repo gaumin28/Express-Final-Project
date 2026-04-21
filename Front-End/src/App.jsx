@@ -18,6 +18,7 @@ import WishlistPage from "./pages/WishlistPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminProductsPage from "./pages/admin/AdminProductsPage";
 import AdminOrdersPage from "./pages/admin/AdminOrdersPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
 
 function App() {
   return (
@@ -75,10 +76,7 @@ function App() {
                   <Route index element={<AdminDashboardPage />} />
                   <Route path="products" element={<AdminProductsPage />} />
                   <Route path="orders" element={<AdminOrdersPage />} />
-                  <Route
-                    path="users"
-                    element={<PlaceholderPage title="Users" />}
-                  />
+                  <Route path="users" element={<AdminUsersPage />} />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/" replace />} />

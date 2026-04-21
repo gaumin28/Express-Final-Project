@@ -12,6 +12,7 @@ export default function RegisterPage() {
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
     password: "",
     confirm: "",
     terms: false,
@@ -31,6 +32,11 @@ export default function RegisterPage() {
       errs.password = "Password is required.";
     } else if (form.password.length < 8) {
       errs.password = "Password must be at least 8 characters.";
+    }
+    if (!form.phone) {
+      errs.phone = "Phone is required.";
+    } else if (form.phone.length < 10) {
+      errs.phone = "Phone number is incorrect.";
     }
     if (!form.confirm) {
       errs.confirm = "Please confirm your password.";
@@ -62,6 +68,7 @@ export default function RegisterPage() {
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
+        phone: form.phone,
         password: form.password,
       });
       toast({
@@ -146,6 +153,22 @@ export default function RegisterPage() {
             />
             {errors.email && (
               <p className="text-xs text-red-500">{errors.email}</p>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-slate-700">
+              Phone number
+            </label>
+            <input
+              type="phone"
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              placeholder="+8412345678"
+              className={inputClass("phone")}
+            />
+            {errors.phone && (
+              <p className="text-xs text-red-500">{errors.phone}</p>
             )}
           </div>
 

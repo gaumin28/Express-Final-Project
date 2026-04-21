@@ -5,6 +5,7 @@ import cors from "cors";
 
 import productRouter from "./routes/productRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
+import ProductModel from "./models/productModel.js";
 
 import CustomerRoute from "./routes/customerRoutes.js";
 
@@ -61,8 +62,11 @@ const startServer = async () => {
       throw new Error("Missing DATABASE_URL in .env");
     }
 
-    await mongoose.connect(DATABASE_URL);
+    await mongoose.connect(DATABASE_URL, { autoIndex: true });
     console.log("[MongoDB] Connected successfully");
+
+    await ProductModel.syncIndexes();
+    console.log("[MongoDB] Product indexes synced");
 
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);

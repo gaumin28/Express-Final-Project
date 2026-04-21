@@ -261,14 +261,14 @@ function CheckoutPage() {
   const [placed, setPlaced] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [shipping, setShipping] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john@shopbee.com",
-    phone: "+1 (555) 000-0000",
-    address: "123 Main Street",
-    city: "New York",
-    state: "NY",
-    zip: "10001",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
     method: "standard",
   });
   const [paymentMethod] = useState("card");

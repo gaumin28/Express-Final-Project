@@ -66,8 +66,17 @@ const productSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-productSchema.index({ slug: 1, isFeatured: 1, price: 1 });
-productSchema.index({ isDeleted: 1, category: 1, isFeatured: 1, price: 1 });
+productSchema.index({ slug: 1 });
+productSchema.index({ isDeleted: 1, isFeatured: -1, createdAt: -1 });
+productSchema.index({
+  isDeleted: 1,
+  category: 1,
+  isFeatured: -1,
+  createdAt: -1,
+});
+productSchema.index({ isDeleted: 1, category: 1, price: 1 });
+productSchema.index({ isDeleted: 1, category: 1, rating: -1 });
+productSchema.index({ name: 1 });
 
 const ProductModel = mongoose.model("products", productSchema);
 

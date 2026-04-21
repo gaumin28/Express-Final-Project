@@ -264,7 +264,6 @@ const ALLOWED_CATEGORIES = CATEGORY_CATALOG.map((item) => item.category);
 const MAX_PRODUCTS_LIMIT = 5_000_000;
 const DEFAULT_PRODUCTS_COUNT = 5_000_000;
 const DEFAULT_BATCH_SIZE = 10_000;
-const DEFAULT_PRODUCTS_SOURCE = "synthetic";
 
 const randomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const randomInt = (min, max) =>
@@ -280,57 +279,9 @@ const createSlug = (name, sequence) => {
   return `${base}-${sequence}`;
 };
 
-const CATEGORY_IMAGE_POOLS = {
-  Electronics: [
-    "https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/788946/pexels-photo-788946.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-  ],
-  Fashion: [
-    "https://images.pexels.com/photos/934070/pexels-photo-934070.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/2983464/pexels-photo-2983464.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/1124468/pexels-photo-1124468.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-  ],
-  Home: [
-    "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/271816/pexels-photo-271816.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/1571458/pexels-photo-1571458.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/6207946/pexels-photo-6207946.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-  ],
-  Gaming: [
-    "https://images.pexels.com/photos/7915357/pexels-photo-7915357.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/1298601/pexels-photo-1298601.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-  ],
-  Accessories: [
-    "https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/2905238/pexels-photo-2905238.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/19090/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/1037992/pexels-photo-1037992.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-  ],
-  Sports: [
-    "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/416717/pexels-photo-416717.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/863988/pexels-photo-863988.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-    "https://images.pexels.com/photos/2294361/pexels-photo-2294361.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-  ],
-};
-
 const createProductImageUrl = (productType, sequence, category) => {
-  const categoryPool = CATEGORY_IMAGE_POOLS[category] || [];
-  if (categoryPool.length === 0) {
-    return `https://placehold.co/800x800/1e293b/ffffff?text=${encodeURIComponent(productType)}`;
-  }
-
-  const productTypeHash = [...String(productType)].reduce(
-    (sum, char) => sum + char.charCodeAt(0),
-    0,
-  );
-  const imageIndex = (sequence + productTypeHash) % categoryPool.length;
-  return categoryPool[imageIndex];
+  const seed = encodeURIComponent(`${category}-${productType}-${sequence}`);
+  return `https://picsum.photos/seed/${seed}/800/800`;
 };
 
 const normalizeCategoryInput = (value) => {
@@ -386,6 +337,81 @@ const buildProductDocument = (sequence, forcedCategory = null) => {
   };
 };
 
+const PRODUCT_WORD_BANK = {
+  brands: [
+    "NovaTech",
+    "UrbanNest",
+    "PeakForge",
+    "LunaCraft",
+    "AeroWave",
+    "TerraPulse",
+    "VividCore",
+    "PrimeOak",
+    "NimbusLab",
+    "VoltEdge",
+  ],
+  adjectives: [
+    "Smart",
+    "Premium",
+    "Eco",
+    "Compact",
+    "Wireless",
+    "Ultra",
+    "Classic",
+    "Modern",
+    "Portable",
+    "Professional",
+    "Essential",
+    "Advanced",
+  ],
+  categories: [
+    "Headphones",
+    "Backpack",
+    "Sneakers",
+    "Desk Lamp",
+    "Coffee Maker",
+    "Gaming Mouse",
+    "Yoga Mat",
+    "Water Bottle",
+    "Jacket",
+    "Smart Watch",
+    "Keyboard",
+    "Bluetooth Speaker",
+  ],
+  variants: [
+    "Series",
+    "Edition",
+    "Plus",
+    "Pro",
+    "Max",
+    "Lite",
+    "Flex",
+    "Prime",
+    "Go",
+    "Core",
+  ],
+  materials: [
+    "aluminum",
+    "recycled fabric",
+    "carbon fiber",
+    "soft-touch polymer",
+    "stainless steel",
+    "vegan leather",
+    "bamboo fiber",
+    "tempered glass",
+  ],
+  useCases: [
+    "daily commute",
+    "home office",
+    "outdoor adventures",
+    "travel",
+    "fitness training",
+    "professional setup",
+    "student life",
+    "hybrid work",
+  ],
+};
+
 export const generateProducts = async (req, res, next) => {
   try {
     const requestedCount = Number(
@@ -395,21 +421,9 @@ export const generateProducts = async (req, res, next) => {
       req.body?.batchSize ?? req.query?.batchSize ?? DEFAULT_BATCH_SIZE,
     );
     const clearExisting =
-      parseBoolean(req.body?.clearExisting) ||
-      parseBoolean(req.query?.clearExisting);
-    const requestedCategory =
-      req.body?.category ?? req.query?.category ?? req.body?.Category;
-
-    const category = requestedCategory
-      ? normalizeCategoryInput(requestedCategory)
-      : null;
-
-    if (requestedCategory && !category) {
-      throw createHttpError(
-        400,
-        `category must be one of: ${ALLOWED_CATEGORIES.join(", ")}`,
-      );
-    }
+      req.body?.clearExisting === true ||
+      req.query?.clearExisting === "true" ||
+      req.query?.clearExisting === "1";
 
     const totalCount = Number.isFinite(requestedCount)
       ? Math.min(Math.max(Math.floor(requestedCount), 1), MAX_PRODUCTS_LIMIT)
@@ -428,7 +442,7 @@ export const generateProducts = async (req, res, next) => {
     const startedAt = Date.now();
     const totalBatches = Math.ceil(totalCount / batchSize);
     console.log(
-      `[generateProducts] Start | target=${totalCount.toLocaleString()} batchSize=${batchSize.toLocaleString()} batches=${totalBatches.toLocaleString()} category=${category || "All"}`,
+      `[generateProducts] Start | target=${totalCount.toLocaleString()} batchSize=${batchSize.toLocaleString()} batches=${totalBatches.toLocaleString()}`,
     );
 
     let insertedCount = 0;
@@ -436,7 +450,7 @@ export const generateProducts = async (req, res, next) => {
       const batchNumber = Math.floor(start / batchSize) + 1;
       const currentBatchSize = Math.min(batchSize, totalCount - start);
       const batch = Array.from({ length: currentBatchSize }, (_, index) =>
-        buildProductDocument(start + index + 1, category),
+        buildProductDocument(start + index + 1),
       );
 
       await ProductModel.insertMany(batch, { ordered: false });
@@ -459,8 +473,6 @@ export const generateProducts = async (req, res, next) => {
       insertedCount,
       batchSize,
       clearExisting,
-      category: category || "All",
-      source: DEFAULT_PRODUCTS_SOURCE,
     });
   } catch (error) {
     return next(error);
@@ -474,6 +486,12 @@ const sanitizeText = (value) =>
   String(value || "")
     .replace(/\s+/g, " ")
     .trim();
+
+const createSlugFromName = (name) =>
+  sanitizeText(name)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-");
 
 const inferCategoryFromRealProduct = (entry) => {
   const text = sanitizeText(
@@ -526,6 +544,7 @@ export const getProducts = async (req, res, next) => {
       page = 1,
       limit = 50,
       search,
+      category,
       isFeatured,
       sort,
       sortBy,
@@ -554,19 +573,41 @@ export const getProducts = async (req, res, next) => {
     const filter = { isDeleted: false };
     const sortQuery = {};
     if (search) {
-      filter.slug = { $regex: `^${escapeRegex(search)}`, $options: "i" };
+      const term = String(search).trim();
+      if (term) {
+        const normalizedSearch = term.toLowerCase().replace(/\s+/g, "-");
+        filter.slug = { $regex: `^${escapeRegex(normalizedSearch)}` };
+      }
+    }
+    if (category) {
+      const normalizedCategory = normalizeCategoryInput(category);
+      if (!normalizedCategory) {
+        throw createHttpError(
+          400,
+          `category must be one of: ${ALLOWED_CATEGORIES.join(", ")}`,
+        );
+      }
+      filter.category = normalizedCategory;
     }
     if (isFeatured) {
       filter.isFeatured = isFeatured === "true";
     }
     if (sortBy) {
-      sortQuery[sortBy] = sort === "desc" ? -1 : 1;
+      if (sortBy === "featured") {
+        sortQuery.isFeatured = -1;
+        sortQuery.createdAt = -1;
+      } else {
+        sortQuery[sortBy] = sort === "desc" ? -1 : 1;
+      }
     }
-    const products = await ProductModel.find(filter)
-      .sort(sortQuery)
-      .skip(skip)
-      .limit(limitNumber);
-    const totalProducts = await ProductModel.countDocuments(filter);
+    const [products, totalProducts] = await Promise.all([
+      ProductModel.find(filter)
+        .sort(sortQuery)
+        .skip(skip)
+        .limit(limitNumber)
+        .lean(),
+      ProductModel.countDocuments(filter),
+    ]);
     return res.status(200).json({
       message: "success",
 
@@ -610,11 +651,63 @@ export const getProductById = async (req, res, next) => {
 export const updateProducts = async (req, res, next) => {
   try {
     const { productId } = req.params;
-    const { price, stock } = req.body;
+    const { name, category, description, price, stock } = req.body;
+
+    if (!/^[a-f\d]{24}$/i.test(productId)) {
+      throw createHttpError(400, "Invalid product id");
+    }
+
     const product = await ProductModel.findById(productId);
     if (!product) throw createHttpError(404, "Product not found");
-    price !== undefined ? (product.price = price) : product.price;
-    stock !== undefined ? (product.stock = stock) : product.stock;
+
+    if (name !== undefined) {
+      const sanitizedName = sanitizeText(name);
+      if (!sanitizedName) {
+        throw createHttpError(400, "name is required");
+      }
+      product.name = sanitizedName;
+      product.slug = createSlugFromName(sanitizedName);
+    }
+
+    if (category !== undefined) {
+      const normalizedCategory = normalizeCategoryInput(category);
+      if (!normalizedCategory) {
+        throw createHttpError(
+          400,
+          `category must be one of: ${ALLOWED_CATEGORIES.join(", ")}`,
+        );
+      }
+      product.category = normalizedCategory;
+    }
+
+    if (description !== undefined) {
+      const sanitizedDescription = sanitizeText(description);
+      if (!sanitizedDescription) {
+        throw createHttpError(400, "description is required");
+      }
+      product.description = sanitizedDescription;
+    }
+
+    if (price !== undefined) {
+      const normalizedPrice = Number(price);
+      if (!Number.isFinite(normalizedPrice) || normalizedPrice < 0) {
+        throw createHttpError(400, "price must be a number >= 0");
+      }
+      product.price = normalizedPrice;
+    }
+
+    if (stock !== undefined) {
+      const normalizedStock = Number(stock);
+      if (
+        !Number.isFinite(normalizedStock) ||
+        !Number.isInteger(normalizedStock) ||
+        normalizedStock < 0
+      ) {
+        throw createHttpError(400, "stock must be an integer >= 0");
+      }
+      product.stock = normalizedStock;
+    }
+
     await product.save();
     return res.status(200).json({
       message: "success",
@@ -635,6 +728,101 @@ export const deleteProducts = async (req, res, next) => {
     await product.save();
     return res.status(200).json({
       message: "success",
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const addProduct = async (req, res, next) => {
+  try {
+    const {
+      name,
+      category,
+      price,
+      stock,
+      description,
+      image,
+      rating,
+      numReviews,
+      isFeatured,
+    } = req.body;
+
+    const sanitizedName = sanitizeText(name);
+    if (!sanitizedName) {
+      throw createHttpError(400, "name is required");
+    }
+
+    const normalizedCategory = normalizeCategoryInput(category);
+    if (!normalizedCategory) {
+      throw createHttpError(
+        400,
+        `category must be one of: ${ALLOWED_CATEGORIES.join(", ")}`,
+      );
+    }
+
+    const sanitizedDescription = sanitizeText(description);
+    if (!sanitizedDescription) {
+      throw createHttpError(400, "description is required");
+    }
+
+    const normalizedPrice = Number(price);
+    if (!Number.isFinite(normalizedPrice) || normalizedPrice < 0) {
+      throw createHttpError(400, "price must be a number >= 0");
+    }
+
+    const normalizedStock = Number(stock);
+    if (
+      !Number.isFinite(normalizedStock) ||
+      !Number.isInteger(normalizedStock) ||
+      normalizedStock < 0
+    ) {
+      throw createHttpError(400, "stock must be an integer >= 0");
+    }
+
+    const normalizedRating =
+      rating === undefined || rating === null || rating === ""
+        ? 0
+        : Number(rating);
+    if (
+      !Number.isFinite(normalizedRating) ||
+      normalizedRating < 0 ||
+      normalizedRating > 5
+    ) {
+      throw createHttpError(400, "rating must be a number between 0 and 5");
+    }
+
+    const normalizedNumReviews =
+      numReviews === undefined || numReviews === null || numReviews === ""
+        ? 0
+        : Number(numReviews);
+    if (
+      !Number.isFinite(normalizedNumReviews) ||
+      !Number.isInteger(normalizedNumReviews) ||
+      normalizedNumReviews < 0
+    ) {
+      throw createHttpError(400, "numReviews must be an integer >= 0");
+    }
+
+    const sanitizedImage = sanitizeText(image);
+    const newProduct = await ProductModel.create({
+      name: sanitizedName,
+      slug: createSlugFromName(sanitizedName),
+      category: normalizedCategory,
+      price: normalizedPrice,
+      stock: normalizedStock,
+      description: sanitizedDescription,
+      image:
+        sanitizedImage ||
+        createProductImageUrl(sanitizedName, Date.now(), normalizedCategory),
+      rating: normalizedRating,
+      numReviews: normalizedNumReviews,
+      isFeatured: Boolean(isFeatured),
+      isDeleted: false,
+    });
+    return res.status(201).json({
+      message: "success",
+      data: newProduct,
     });
   } catch (error) {
     return next(error);

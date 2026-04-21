@@ -19,6 +19,11 @@ const customerSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
     role: {
       type: String,
       default: "CUSTOMER",

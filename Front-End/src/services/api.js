@@ -75,6 +75,7 @@ function normalizeUser(user) {
     firstName,
     lastName,
     name: fullName || `${firstName} ${lastName}`.trim(),
+    phone: user.phone || "",
     role: String(user.role || "user").toLowerCase(),
     memberSince,
   };
@@ -198,6 +199,7 @@ export async function getProductsPage({
   page = 1,
   limit = 50,
   search,
+  category,
   sortBy,
   sort,
   isFeatured,
@@ -206,6 +208,7 @@ export async function getProductsPage({
   params.set("page", String(page));
   params.set("limit", String(limit));
   if (search) params.set("search", String(search));
+  if (category) params.set("category", String(category));
   if (sortBy) params.set("sortBy", String(sortBy));
   if (sort) params.set("sort", String(sort));
   if (typeof isFeatured === "boolean") {
@@ -237,6 +240,32 @@ export async function getProductById(id) {
   }
 }
 
+export async function updateProduct(id, updates) {
+  const payload = await requestJSON(`/api/products/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(updates),
+  });
+
+  return normalizeProduct(payload?.data || payload);
+}
+
+export async function addProduct(productData) {
+  const payload = await requestJSON(`/api/products`, {
+    method: "POST",
+    body: JSON.stringify(productData),
+  });
+
+  return normalizeProduct(payload?.data || payload);
+}
+
+export async function deleteProduct(id) {
+  const payload = await requestJSON(`/api/products/${id}`, {
+    method: "DELETE",
+  });
+
+  return payload;
+}
+
 // ─────────────────────────────────────────────
 // Auth
 // ─────────────────────────────────────────────
@@ -253,16 +282,21 @@ export async function loginUser({ email, password }) {
   return user;
 }
 
-export async function registerUser({ firstName, lastName, email, password }) {
+export async function registerUser({
+  firstName,
+  lastName,
+  email,
+  phone,
+  password,
+}) {
   const name = `${firstName || ""} ${lastName || ""}`.trim();
-  const generatedPhone = `9${Date.now().toString().slice(-9)}`;
   const payload = await requestJSON("/api/auth/register", {
     method: "POST",
     body: JSON.stringify({
       name: name || email?.split("@")[0] || "User",
       email,
       password,
-      phone: generatedPhone,
+      phone: phone,
     }),
   });
 
@@ -363,4 +397,28 @@ export async function cancelMyOrder(orderId) {
     ...payload,
     order: normalizeOrder(payload?.order),
   };
+}
+
+export async function getCustomers() {
+  const payload = await requestJSON("/api/auth/customers");
+  const items = Array.isArray(payload) ? payload : payload?.customers || [];
+  return items.map(normalizeUser);
+}
+
+export async function updateCustomer(customerId, updates) {
+  const payload = await requestJSON(`/api/auth/customers/${customerId}`, {
+    method: "PATCH",
+    body: JSON.stringify(updates),
+  });
+  return {
+    ...payload,
+    customer: normalizeUser(payload?.customer),
+  };
+}
+
+export async function deleteCustomer(customerId) {
+  const payload = await requestJSON(`/api/auth/customers/${customerId}`, {
+    method: "DELETE",
+  });
+  return payload;
 }
