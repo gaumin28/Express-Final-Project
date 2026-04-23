@@ -26,6 +26,7 @@ const SORT_OPTIONS = [
   { value: "price-asc", label: "Price: Low to High" },
   { value: "price-desc", label: "Price: High to Low" },
   { value: "rating", label: "Top Rated" },
+  { value: "popular", label: "Most Popular" },
 ];
 
 function ShopPage() {
@@ -38,6 +39,9 @@ function ShopPage() {
   const [totalProducts, setTotalProducts] = useState(0);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [priceRange, setPriceRange] = useState([0, 5000]);
+  const [minRating, setMinRating] = useState(0);
+  const [showFilters, setShowFilters] = useState(false);
 
   const PAGE_SIZE = 24;
 
@@ -47,6 +51,11 @@ function ShopPage() {
     setLoading(true);
     setPage(1);
     setSearch(searchInput.trim());
+  };
+
+  const applyFilters = () => {
+    setLoading(true);
+    setPage(1);
   };
 
   useEffect(() => {
@@ -59,13 +68,18 @@ function ShopPage() {
           ? { sortBy: "price", sort: "desc" }
           : sort === "rating"
             ? { sortBy: "rating", sort: "desc" }
-            : { sortBy: "featured", sort: "desc" };
+            : sort === "popular"
+              ? { sortBy: "popular", sort: "desc" }
+              : { sortBy: "featured", sort: "desc" };
 
     getProductsPage({
       page,
       limit: PAGE_SIZE,
       search,
       category: selectedCategory || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      minRating: minRating > 0 ? minRating : undefined,
       ...sortQuery,
     })
       .then((result) => {
@@ -86,7 +100,7 @@ function ShopPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, sort, search, selectedCategory]);
+  }, [page, sort, search, selectedCategory, priceRange, minRating]);
 
   return (
     <section className="space-y-6">
@@ -141,10 +155,96 @@ function ShopPage() {
           >
             <img src={searchIcon} alt="search-icon" /> <span>Search</span>
           </button>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            {showFilters ? "Hide" : "Show"} Filters
+          </button>
         </div>
+
+        {/* Filters Panel */}
+        {showFilters && (
+          <div className="space-y-4 border-t border-slate-200 pt-4">
+            {/* Price Range Filter */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-slate-700">
+                Price Range
+              </label>
+              <div className="flex gap-3 items-center">
+                <input
+                  type="number"
+                  value={priceRange[0]}
+                  onChange={(e) =>
+                    setPriceRange([Number(e.target.value), priceRange[1]])
+                  }
+                  min="0"
+                  max={priceRange[1]}
+                  placeholder="Min"
+                  className="w-28 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                />
+                <span className="text-slate-500">to</span>
+                <input
+                  type="number"
+                  value={priceRange[1]}
+                  onChange={(e) =>
+                    setPriceRange([priceRange[0], Number(e.target.value)])
+                  }
+                  min={priceRange[0]}
+                  max="10000"
+                  placeholder="Max"
+                  className="w-28 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                />
+                <button
+                  onClick={applyFilters}
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+
+            {/* Rating Filter */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-700">
+                Minimum Rating
+              </label>
+              <div className="flex gap-2">
+                {[0, 1, 2, 3, 4].map((rating) => (
+                  <button
+                    key={rating}
+                    onClick={() => {
+                      setMinRating(rating);
+                      applyFilters();
+                    }}
+                    className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                      minRating === rating
+                        ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                        : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {rating === 0 ? "All" : `${rating}+ ⭐`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Clear Filters */}
+            <button
+              onClick={() => {
+                setPriceRange([0, 5000]);
+                setMinRating(0);
+                applyFilters();
+              }}
+              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-wrap gap-y-4 justify-around sm:justify-around lg:justify-between">
         {loading
           ? Array.from({ length: 6 }).map((_, i) => <ProductSkeleton key={i} />)
           : products.map((product) => (

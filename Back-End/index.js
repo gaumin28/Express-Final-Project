@@ -5,6 +5,7 @@ import cors from "cors";
 
 import productRouter from "./routes/productRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
+import reviewRouter from "./routes/reviewRoutes.js";
 import ProductModel from "./models/productModel.js";
 
 import CustomerRoute from "./routes/customerRoutes.js";
@@ -29,6 +30,7 @@ app.use(express.json({ limit: "5mb" }));
 
 app.use("/api/products", productRouter);
 app.use("/api/orders", orderRouter);
+app.use("/api/reviews", reviewRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello");

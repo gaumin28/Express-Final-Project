@@ -68,16 +68,12 @@ const shippingSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    state: {
+    ward: {
       type: String,
       required: true,
       trim: true,
     },
-    zip: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+
     method: {
       type: String,
       required: true,

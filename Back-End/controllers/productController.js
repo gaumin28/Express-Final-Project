@@ -412,72 +412,72 @@ const PRODUCT_WORD_BANK = {
   ],
 };
 
-export const generateProducts = async (req, res, next) => {
-  try {
-    const requestedCount = Number(
-      req.body?.count ?? req.query?.count ?? DEFAULT_PRODUCTS_COUNT,
-    );
-    const requestedBatchSize = Number(
-      req.body?.batchSize ?? req.query?.batchSize ?? DEFAULT_BATCH_SIZE,
-    );
-    const clearExisting =
-      req.body?.clearExisting === true ||
-      req.query?.clearExisting === "true" ||
-      req.query?.clearExisting === "1";
+// export const generateProducts = async (req, res, next) => {
+//   try {
+//     const requestedCount = Number(
+//       req.body?.count ?? req.query?.count ?? DEFAULT_PRODUCTS_COUNT,
+//     );
+//     const requestedBatchSize = Number(
+//       req.body?.batchSize ?? req.query?.batchSize ?? DEFAULT_BATCH_SIZE,
+//     );
+//     const clearExisting =
+//       req.body?.clearExisting === true ||
+//       req.query?.clearExisting === "true" ||
+//       req.query?.clearExisting === "1";
 
-    const totalCount = Number.isFinite(requestedCount)
-      ? Math.min(Math.max(Math.floor(requestedCount), 1), MAX_PRODUCTS_LIMIT)
-      : DEFAULT_PRODUCTS_COUNT;
+//     const totalCount = Number.isFinite(requestedCount)
+//       ? Math.min(Math.max(Math.floor(requestedCount), 1), MAX_PRODUCTS_LIMIT)
+//       : DEFAULT_PRODUCTS_COUNT;
 
-    const batchSize = Number.isFinite(requestedBatchSize)
-      ? Math.min(Math.max(Math.floor(requestedBatchSize), 500), 50_000)
-      : DEFAULT_BATCH_SIZE;
+//     const batchSize = Number.isFinite(requestedBatchSize)
+//       ? Math.min(Math.max(Math.floor(requestedBatchSize), 500), 50_000)
+//       : DEFAULT_BATCH_SIZE;
 
-    if (clearExisting) {
-      console.log("[generateProducts] Clearing existing products...");
-      await ProductModel.deleteMany({});
-      console.log("[generateProducts] Existing products cleared.");
-    }
+//     if (clearExisting) {
+//       console.log("[generateProducts] Clearing existing products...");
+//       await ProductModel.deleteMany({});
+//       console.log("[generateProducts] Existing products cleared.");
+//     }
 
-    const startedAt = Date.now();
-    const totalBatches = Math.ceil(totalCount / batchSize);
-    console.log(
-      `[generateProducts] Start | target=${totalCount.toLocaleString()} batchSize=${batchSize.toLocaleString()} batches=${totalBatches.toLocaleString()}`,
-    );
+//     const startedAt = Date.now();
+//     const totalBatches = Math.ceil(totalCount / batchSize);
+//     console.log(
+//       `[generateProducts] Start | target=${totalCount.toLocaleString()} batchSize=${batchSize.toLocaleString()} batches=${totalBatches.toLocaleString()}`,
+//     );
 
-    let insertedCount = 0;
-    for (let start = 0; start < totalCount; start += batchSize) {
-      const batchNumber = Math.floor(start / batchSize) + 1;
-      const currentBatchSize = Math.min(batchSize, totalCount - start);
-      const batch = Array.from({ length: currentBatchSize }, (_, index) =>
-        buildProductDocument(start + index + 1),
-      );
+//     let insertedCount = 0;
+//     for (let start = 0; start < totalCount; start += batchSize) {
+//       const batchNumber = Math.floor(start / batchSize) + 1;
+//       const currentBatchSize = Math.min(batchSize, totalCount - start);
+//       const batch = Array.from({ length: currentBatchSize }, (_, index) =>
+//         buildProductDocument(start + index + 1),
+//       );
 
-      await ProductModel.insertMany(batch, { ordered: false });
-      insertedCount += currentBatchSize;
+//       await ProductModel.insertMany(batch, { ordered: false });
+//       insertedCount += currentBatchSize;
 
-      const progressPercent = ((insertedCount / totalCount) * 100).toFixed(2);
-      const elapsedSeconds = ((Date.now() - startedAt) / 1000).toFixed(1);
-      console.log(
-        `[generateProducts] Progress ${progressPercent}% | batch ${batchNumber}/${totalBatches} | inserted=${insertedCount.toLocaleString()} | elapsed=${elapsedSeconds}s`,
-      );
-    }
+//       const progressPercent = ((insertedCount / totalCount) * 100).toFixed(2);
+//       const elapsedSeconds = ((Date.now() - startedAt) / 1000).toFixed(1);
+//       console.log(
+//         `[generateProducts] Progress ${progressPercent}% | batch ${batchNumber}/${totalBatches} | inserted=${insertedCount.toLocaleString()} | elapsed=${elapsedSeconds}s`,
+//       );
+//     }
 
-    const totalSeconds = ((Date.now() - startedAt) / 1000).toFixed(1);
-    console.log(
-      `[generateProducts] Completed | inserted=${insertedCount.toLocaleString()} | duration=${totalSeconds}s`,
-    );
+//     const totalSeconds = ((Date.now() - startedAt) / 1000).toFixed(1);
+//     console.log(
+//       `[generateProducts] Completed | inserted=${insertedCount.toLocaleString()} | duration=${totalSeconds}s`,
+//     );
 
-    return res.status(201).json({
-      message: `Successfully generated ${insertedCount.toLocaleString()} products.`,
-      insertedCount,
-      batchSize,
-      clearExisting,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
+//     return res.status(201).json({
+//       message: `Successfully generated ${insertedCount.toLocaleString()} products.`,
+//       insertedCount,
+//       batchSize,
+//       clearExisting,
+//     });
+//   } catch (error) {
+//     return next(error);
+//   }
+// };
 
 const parseBoolean = (value) =>
   value === true || value === "true" || value === "1";
@@ -548,6 +548,9 @@ export const getProducts = async (req, res, next) => {
       isFeatured,
       sort,
       sortBy,
+      minPrice,
+      maxPrice,
+      minRating,
     } = req.query;
     const pageNumber = Number(page);
     const limitNumber = Number(limit);
@@ -572,13 +575,17 @@ export const getProducts = async (req, res, next) => {
     const skip = (pageNumber - 1) * limitNumber;
     const filter = { isDeleted: false };
     const sortQuery = {};
+
     if (search) {
       const term = String(search).trim();
       if (term) {
-        const normalizedSearch = term.toLowerCase().replace(/\s+/g, "-");
-        filter.slug = { $regex: `^${escapeRegex(normalizedSearch)}` };
+        filter.$or = [
+          { name: { $regex: escapeRegex(term), $options: "i" } },
+          { slug: { $regex: escapeRegex(term), $options: "i" } },
+        ];
       }
     }
+
     if (category) {
       const normalizedCategory = normalizeCategoryInput(category);
       if (!normalizedCategory) {
@@ -589,17 +596,51 @@ export const getProducts = async (req, res, next) => {
       }
       filter.category = normalizedCategory;
     }
+
     if (isFeatured) {
       filter.isFeatured = isFeatured === "true";
     }
+
+    // Price range filter
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      filter.price = {};
+      if (minPrice !== undefined) {
+        const min = Number(minPrice);
+        if (Number.isFinite(min) && min >= 0) {
+          filter.price.$gte = min;
+        }
+      }
+      if (maxPrice !== undefined) {
+        const max = Number(maxPrice);
+        if (Number.isFinite(max) && max >= 0) {
+          filter.price.$lte = max;
+        }
+      }
+    }
+
+    // Rating filter
+    if (minRating !== undefined) {
+      const rating = Number(minRating);
+      if (Number.isFinite(rating) && rating >= 0 && rating <= 5) {
+        filter.rating = { $gte: rating };
+      }
+    }
+
     if (sortBy) {
       if (sortBy === "featured") {
         sortQuery.isFeatured = -1;
         sortQuery.createdAt = -1;
+      } else if (sortBy === "popular") {
+        sortQuery.numReviews = -1;
+        sortQuery.rating = -1;
+      } else if (sortBy === "rating") {
+        sortQuery.rating = -1;
+        sortQuery.numReviews = -1;
       } else {
         sortQuery[sortBy] = sort === "desc" ? -1 : 1;
       }
     }
+
     const [products, totalProducts] = await Promise.all([
       ProductModel.find(filter)
         .sort(sortQuery)
@@ -611,13 +652,24 @@ export const getProducts = async (req, res, next) => {
 
     return res.status(200).json({
       message: "success",
-
       products: products,
       totalProducts: totalProducts,
-
       page: pageNumber,
       limit: limitNumber,
       skip,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getDeletedProduct = async (req, res, next) => {
+  try {
+    const deletedProducts = await ProductModel.find({ isDeleted: true });
+    if (!deleteProducts) throw createHttpError(400, "No deleleted product");
+    return res.status(200).json({
+      message: "success",
+      data: deletedProducts,
     });
   } catch (error) {
     return next(error);

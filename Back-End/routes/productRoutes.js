@@ -2,7 +2,7 @@ import express from "express";
 import {
   addProduct,
   deleteProducts,
-  generateProducts,
+  getDeletedProduct,
   getProductById,
   getProducts,
   updateProducts,
@@ -15,16 +15,22 @@ import {
 
 const productRouter = express.Router();
 
-productRouter.post(
-  "/generate",
-  validateCustomerToken,
-  validateAdminRole,
-  validateGenerateProductsPayload,
-  generateProducts,
-);
+// productRouter.post(
+//   "/generate",
+//   validateCustomerToken,
+//   validateAdminRole,
+//   validateGenerateProductsPayload,
+//   generateProducts,
+// );
 productRouter.post("/", validateCustomerToken, validateAdminRole, addProduct);
 
 productRouter.get("", getProducts);
+productRouter.get(
+  "/deletedProduct",
+  validateCustomerToken,
+  validateAdminRole,
+  getDeletedProduct,
+);
 productRouter.get("/:productId", getProductById);
 productRouter.put(
   "/:productId",

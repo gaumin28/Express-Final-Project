@@ -11,6 +11,7 @@ import furniture from "../assets/furniture.jpg";
 import gaming from "../assets/gaming.jpg";
 import laptop from "../assets/laptop.webp";
 import accessory from "../assets/accessory.avif";
+import { useAuth } from "../context/useAuth";
 
 const categories = [
   "All",
@@ -26,6 +27,7 @@ const images = [ps5, adidas, Apple];
 function HomePage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [products, setProducts] = useState([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     let cancelled = false;
@@ -133,12 +135,14 @@ function HomePage() {
             >
               Explore shop
             </Link>
-            <Link
-              to="/register"
-              className="rounded-xl border border-white/50 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
-              Create account
-            </Link>
+            {!user && (
+              <Link
+                to="/register"
+                className="rounded-xl border border-white/50 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Create account
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -160,7 +164,7 @@ function HomePage() {
           {categories.toSpliced(0, 1).map((category, index) => (
             <Link
               key={index}
-              to={`/shop?category=${encodeURIComponent(category)}`}
+              to={`/shop?category=${encodeURIComponent(category.name)}`}
               className="flex flex-col h-40 w-30 p-5 items-center justify-center rounded-md border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-600"
             >
               <img

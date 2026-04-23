@@ -203,6 +203,9 @@ export async function getProductsPage({
   sortBy,
   sort,
   isFeatured,
+  minPrice,
+  maxPrice,
+  minRating,
 } = {}) {
   const params = new URLSearchParams();
   params.set("page", String(page));
@@ -214,6 +217,9 @@ export async function getProductsPage({
   if (typeof isFeatured === "boolean") {
     params.set("isFeatured", String(isFeatured));
   }
+  if (minPrice !== undefined) params.set("minPrice", String(minPrice));
+  if (maxPrice !== undefined) params.set("maxPrice", String(maxPrice));
+  if (minRating !== undefined) params.set("minRating", String(minRating));
 
   const payload = await requestJSON(`/api/products?${params.toString()}`);
   const items = Array.isArray(payload) ? payload : payload?.products || [];
@@ -421,4 +427,53 @@ export async function deleteCustomer(customerId) {
     method: "DELETE",
   });
   return payload;
+}
+
+// ─────────────────────────────────────────────
+// Reviews
+// ─────────────────────────────────────────────
+
+export async function getProductReviews(
+  productId,
+  { page = 1, limit = 20 } = {},
+) {
+  const params = new URLSearchParams();
+  params.set("page", String(page));
+  params.set("limit", String(limit));
+
+  const payload = await requestJSON(
+    `/api/reviews/products/${productId}?${params.toString()}`,
+  );
+
+  const items = Array.isArray(payload) ? payload : payload?.reviews || [];
+  return {
+    reviews: items,
+    totalReviews: Number(payload?.totalReviews || items.length || 0),
+    page: Number(payload?.page || page),
+    limit: Number(payload?.limit || limit),
+  };
+}
+
+export async function createReview(productId, { rating, comment }) {
+  const payload = await requestJSON(`/api/reviews/products/${productId}`, {
+    method: "POST",
+    body: JSON.stringify({ rating, comment }),
+  });
+
+  return payload?.review || payload;
+}
+
+export async function updateReview(reviewId, { rating, comment }) {
+  const payload = await requestJSON(`/api/reviews/${reviewId}`, {
+    method: "PUT",
+    body: JSON.stringify({ rating, comment }),
+  });
+
+  return payload?.review || payload;
+}
+
+export async function deleteReview(reviewId) {
+  return await requestJSON(`/api/reviews/${reviewId}`, {
+    method: "DELETE",
+  });
 }

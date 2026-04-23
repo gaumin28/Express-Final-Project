@@ -99,7 +99,7 @@ function ShippingStep({ shipping, onChange }) {
           label="Ward"
           placeholder="Sai Gon"
           value={shipping.state}
-          onChange={(e) => onChange("state", e.target.value)}
+          onChange={(e) => onChange("ward", e.target.value)}
         />
         {/* <InputField
           label="ZIP code"
@@ -292,7 +292,7 @@ function CheckoutPage() {
     phone: "",
     address: "",
     city: "",
-    state: "",
+    ward: "",
     method: "standard",
   });
   const [paymentMethod, setPaymentMethod] = useState("card");
@@ -311,7 +311,7 @@ function CheckoutPage() {
       shipping.phone.trim() &&
       shipping.address.trim() &&
       shipping.city.trim() &&
-      shipping.state.trim()
+      shipping.ward.trim()
     );
   }
 

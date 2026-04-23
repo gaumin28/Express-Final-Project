@@ -14,6 +14,18 @@ const EMPTY_FORM = {
   description: "",
 };
 
+const categories = [
+  "All",
+  "Electronics",
+  "Fashion",
+  "Home",
+  "Gaming",
+  "Accessories",
+  "Sports",
+];
+
+const productCategories = categories.filter((category) => category !== "All");
+
 function AdminProductsPage() {
   const [products, setProducts] = useState([]);
   const [searchInput, setSearchInput] = useState("");
@@ -26,6 +38,7 @@ function AdminProductsPage() {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [isSelected, setIsSelected] = useState("All");
 
   const PAGE_SIZE = 25;
   const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
@@ -50,6 +63,7 @@ function AdminProductsPage() {
       page,
       limit: PAGE_SIZE,
       search: search || undefined,
+      category: isSelected !== "All" ? isSelected : undefined,
       sortBy: "createdAt",
       sort: "desc",
     })
@@ -72,7 +86,7 @@ function AdminProductsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, search]);
+  }, [page, search, isSelected]);
 
   async function handleDelete(id) {
     if (!confirm("Delete this product?")) return;
@@ -156,6 +170,25 @@ function AdminProductsPage() {
               ? "Loading products..."
               : `${totalProducts.toLocaleString()} total products`}
           </p>
+        </div>
+        <div className="flex gap-2">
+          {categories.map((category) => (
+            <button
+              className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+                isSelected === category
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              }`}
+              onClick={() => {
+                setLoading(true);
+                setIsSelected(category);
+                setPage(1);
+              }}
+              key={category}
+            >
+              {category}
+            </button>
+          ))}
         </div>
         <button
           onClick={() => {
@@ -383,11 +416,6 @@ function AdminProductsPage() {
                   placeholder: "e.g. Wireless Keyboard",
                 },
                 {
-                  key: "category",
-                  label: "Category",
-                  placeholder: "e.g. Electronics",
-                },
-                {
                   key: "price",
                   label: "Price ($)",
                   placeholder: "0.00",
@@ -416,6 +444,31 @@ function AdminProductsPage() {
                   />
                 </div>
               ))}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-slate-700">
+                  Category
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      category: e.target.value,
+                    }))
+                  }
+                  disabled={saving}
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                >
+                  <option value="" disabled>
+                    Select category
+                  </option>
+                  {productCategories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-slate-700">
                   Description
