@@ -608,6 +608,7 @@ export const getProducts = async (req, res, next) => {
         .lean(),
       ProductModel.countDocuments(filter),
     ]);
+
     return res.status(200).json({
       message: "success",
 

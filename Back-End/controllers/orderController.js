@@ -134,8 +134,8 @@ const validateShipping = (shipping) => {
     "phone",
     "address",
     "city",
-    "state",
-    "zip",
+    "ward",
+
     "method",
   ];
 

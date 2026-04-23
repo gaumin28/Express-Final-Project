@@ -5,15 +5,21 @@ import { getProductsPage } from "../services/api";
 import ps5 from "../image/ps5.jpg";
 import adidas from "../image/adidas-sneakers.webp";
 import Apple from "../image/Apple-iPhone-17.jpg";
+import sport from "../assets/sport.jpg";
+import clothing from "../assets/clothing.jpg";
+import furniture from "../assets/furniture.jpg";
+import gaming from "../assets/gaming.jpg";
+import laptop from "../assets/laptop.webp";
+import accessory from "../assets/accessory.avif";
 
 const categories = [
   "All",
-  "Electronics",
-  "Fashion",
-  "Home",
-  "Gaming",
-  "Accessories",
-  "Sports",
+  { name: "Electronics", img: laptop },
+  { name: "Fashion", img: clothing },
+  { name: "Home", img: furniture },
+  { name: "Gaming", img: gaming },
+  { name: "Accessories", img: accessory },
+  { name: "Sports", img: sport },
 ];
 const images = [ps5, adidas, Apple];
 
@@ -26,7 +32,7 @@ function HomePage() {
 
     getProductsPage({
       page: 1,
-      limit: 18,
+      limit: 12,
       sortBy: "featured",
       sort: "desc",
     })
@@ -151,13 +157,18 @@ function HomePage() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          {categories.toSpliced(0, 1).map((category) => (
+          {categories.toSpliced(0, 1).map((category, index) => (
             <Link
-              key={category}
+              key={index}
               to={`/shop?category=${encodeURIComponent(category)}`}
-              className="flex h-40 w-30 items-center justify-center rounded border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-600"
+              className="flex flex-col h-40 w-30 p-5 items-center justify-center rounded-md border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-600"
             >
-              {category}
+              <img
+                className="h-20 rounded"
+                src={category.img}
+                alt={category.name}
+              />
+              {category.name}
             </Link>
           ))}
         </div>
@@ -176,7 +187,7 @@ function HomePage() {
           </Link>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex gap-y-4 gap-2 flex-wrap justify-between sm:justify-around">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

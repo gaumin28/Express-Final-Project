@@ -43,6 +43,7 @@ function InputField({ label, placeholder, type = "text", value, onChange }) {
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        required
         className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
       />
     </div>
@@ -76,7 +77,7 @@ function ShippingStep({ shipping, onChange }) {
       />
       <InputField
         label="Phone number"
-        placeholder="+1 (555) 000-0000"
+        placeholder="+84 12345678"
         type="tel"
         value={shipping.phone}
         onChange={(e) => onChange("phone", e.target.value)}
@@ -90,22 +91,22 @@ function ShippingStep({ shipping, onChange }) {
       <div className="grid gap-4 sm:grid-cols-3">
         <InputField
           label="City"
-          placeholder="New York"
+          placeholder="HCM"
           value={shipping.city}
           onChange={(e) => onChange("city", e.target.value)}
         />
         <InputField
-          label="State"
-          placeholder="NY"
+          label="Ward"
+          placeholder="Sai Gon"
           value={shipping.state}
           onChange={(e) => onChange("state", e.target.value)}
         />
-        <InputField
+        {/* <InputField
           label="ZIP code"
           placeholder="10001"
           value={shipping.zip}
           onChange={(e) => onChange("zip", e.target.value)}
-        />
+        /> */}
       </div>
       <div className="space-y-2">
         <p className="text-sm font-medium text-slate-700">Shipping method</p>
@@ -158,16 +159,17 @@ function ShippingStep({ shipping, onChange }) {
   );
 }
 
-function PaymentStep() {
+function PaymentStep({ payment, onChange, paymentMethod, onMethodChange }) {
+  const methods = [
+    { id: "card", label: "Credit / Debit Card" },
+    { id: "shopBeePay", label: "ShopBee Pay" },
+    { id: "cod", label: "Cash on delivery" },
+  ];
   return (
     <div className="space-y-5">
       <h2 className="text-lg font-bold text-slate-900">Payment details</h2>
       <div className="space-y-2">
-        {[
-          { id: "card", label: "Credit / Debit Card" },
-          { id: "paypal", label: "PayPal" },
-          { id: "cod", label: "Cash on delivery" },
-        ].map((method, i) => (
+        {methods.map((method) => (
           <label
             key={method.id}
             className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-indigo-300"
@@ -175,7 +177,8 @@ function PaymentStep() {
             <input
               type="radio"
               name="payment"
-              defaultChecked={i === 0}
+              checked={paymentMethod === method.id}
+              onChange={() => onMethodChange(method.id)}
               className="accent-indigo-600"
             />
             <span className="text-sm font-semibold text-slate-900">
@@ -184,14 +187,36 @@ function PaymentStep() {
           </label>
         ))}
       </div>
-      <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-        <InputField label="Cardholder name" placeholder="John Doe" />
-        <InputField label="Card number" placeholder="1234 5678 9012 3456" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <InputField label="Expiry date" placeholder="MM / YY" />
-          <InputField label="CVV" placeholder="123" />
+      {paymentMethod === "card" && (
+        <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <InputField
+            label="Cardholder name"
+            placeholder="John Doe"
+            value={payment.cardholderName}
+            onChange={(e) => onChange("cardholderName", e.target.value)}
+          />
+          <InputField
+            label="Card number"
+            placeholder="1234 5678 9012 3456"
+            value={payment.cardNumber}
+            onChange={(e) => onChange("cardNumber", e.target.value)}
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <InputField
+              label="Expiry date"
+              placeholder="MM / YY"
+              value={payment.expiryDate}
+              onChange={(e) => onChange("expiryDate", e.target.value)}
+            />
+            <InputField
+              label="CVV"
+              placeholder="123"
+              value={payment.cvv}
+              onChange={(e) => onChange("cvv", e.target.value)}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -268,10 +293,43 @@ function CheckoutPage() {
     address: "",
     city: "",
     state: "",
-    zip: "",
     method: "standard",
   });
-  const [paymentMethod] = useState("card");
+  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [payment, setPayment] = useState({
+    cardholderName: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+  });
+
+  function isShippingValid() {
+    return (
+      shipping.firstName.trim() &&
+      shipping.lastName.trim() &&
+      shipping.email.trim() &&
+      shipping.phone.trim() &&
+      shipping.address.trim() &&
+      shipping.city.trim() &&
+      shipping.state.trim()
+    );
+  }
+
+  function isPaymentValid() {
+    if (paymentMethod !== "card") return true;
+    return (
+      payment.cardholderName.trim() &&
+      payment.cardNumber.trim() &&
+      payment.expiryDate.trim() &&
+      payment.cvv.trim()
+    );
+  }
+
+  function canContinue() {
+    if (step === 0) return isShippingValid();
+    if (step === 1) return isPaymentValid();
+    return true;
+  }
 
   async function handlePlaceOrder() {
     const shippingFee = cartTotal > 50 ? 0 : 5.99;
@@ -368,7 +426,16 @@ function CheckoutPage() {
             }
           />
         )}
-        {step === 1 && <PaymentStep />}
+        {step === 1 && (
+          <PaymentStep
+            payment={payment}
+            onChange={(key, value) =>
+              setPayment((prev) => ({ ...prev, [key]: value }))
+            }
+            paymentMethod={paymentMethod}
+            onMethodChange={setPaymentMethod}
+          />
+        )}
         {step === 2 && (
           <ReviewStep cartItems={cartItems} cartTotal={cartTotal} />
         )}
@@ -394,7 +461,8 @@ function CheckoutPage() {
         {step < STEPS.length - 1 ? (
           <button
             onClick={() => setStep((s) => s + 1)}
-            className="rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+            disabled={!canContinue()}
+            className="rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition disabled:bg-slate-300 disabled:cursor-not-allowed"
           >
             Continue →
           </button>
