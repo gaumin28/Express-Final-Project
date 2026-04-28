@@ -10,7 +10,10 @@ import ProductModel from "./models/productModel.js";
 
 import CustomerRoute from "./routes/customerRoutes.js";
 
-dotenv.config();
+// Only load .env in development (Render sets env vars directly)
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
 
 const app = express();
 const PORT = process.env.PORT || 8080;
