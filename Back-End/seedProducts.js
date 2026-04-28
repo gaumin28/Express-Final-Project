@@ -216,7 +216,7 @@ async function seedProducts() {
     );
 
     // Number of products to generate
-    const TOTAL_PRODUCTS = 3000000; // Change this number as needed
+    const TOTAL_PRODUCTS = 1000000;
     const BATCH_SIZE = 10000;
     const totalBatches = Math.ceil(TOTAL_PRODUCTS / BATCH_SIZE);
 

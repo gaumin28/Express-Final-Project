@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, Link } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
@@ -15,6 +15,9 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import WishlistPage from "./pages/WishlistPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage";
+import ContactPage from "./pages/ContactPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminProductsPage from "./pages/admin/AdminProductsPage";
 import AdminOrdersPage from "./pages/admin/AdminOrdersPage";
@@ -37,6 +40,9 @@ function App() {
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/contact" element={<ContactPage />} />
 
                 {/* Protected — must be logged in */}
                 <Route
@@ -89,15 +95,15 @@ function App() {
                   © {new Date().getFullYear()} ShopBee. All rights reserved.
                 </p>
                 <div className="flex gap-4">
-                  <a href="#" className="hover:text-indigo-600">
+                  <Link to="/privacy" className="hover:text-indigo-600">
                     Privacy
-                  </a>
-                  <a href="#" className="hover:text-indigo-600">
+                  </Link>
+                  <Link to="/terms" className="hover:text-indigo-600">
                     Terms
-                  </a>
-                  <a href="#" className="hover:text-indigo-600">
+                  </Link>
+                  <Link to="/contact" className="hover:text-indigo-600">
                     Contact
-                  </a>
+                  </Link>
                 </div>
               </div>
             </footer>

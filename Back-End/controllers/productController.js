@@ -704,7 +704,7 @@ export const getProductById = async (req, res, next) => {
 export const updateProducts = async (req, res, next) => {
   try {
     const { productId } = req.params;
-    const { name, category, description, price, stock } = req.body;
+    const { name, category, description, price, stock, image } = req.body;
 
     if (!/^[a-f\d]{24}$/i.test(productId)) {
       throw createHttpError(400, "Invalid product id");
@@ -759,6 +759,13 @@ export const updateProducts = async (req, res, next) => {
         throw createHttpError(400, "stock must be an integer >= 0");
       }
       product.stock = normalizedStock;
+    }
+
+    if (image !== undefined) {
+      const sanitizedImage = sanitizeText(image);
+      if (sanitizedImage) {
+        product.image = sanitizedImage;
+      }
     }
 
     await product.save();

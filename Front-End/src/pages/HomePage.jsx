@@ -27,6 +27,7 @@ const images = [ps5, adidas, Apple];
 function HomePage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [products, setProducts] = useState([]);
+  const [newArrivals, setNewArrivals] = useState([]);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -54,6 +55,39 @@ function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    getProductsPage({
+      page: 1,
+      limit: 8,
+      sortBy: "createdAt",
+      sort: "desc",
+    })
+      .then((result) => {
+        if (!cancelled) {
+          setNewArrivals(result.products);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setNewArrivals([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const handlePrevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
@@ -71,7 +105,7 @@ function HomePage() {
         <button
           onClick={handlePrevImage}
           aria-label="Previous image"
-          className="absolute top-1/2 left-0 z-20 flex h-12 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full bg-black/30 text-white shadow-lg transition-all duration-300 hover:bg-black/70"
+          className="absolute top-1/2 left-0 z-20 flex h-12 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full bg-black/30 text-white shadow-lg transition-all duration-500 hover:bg-black/70"
         >
           <svg
             stroke="currentColor"
@@ -95,7 +129,7 @@ function HomePage() {
         <button
           onClick={handleNextImage}
           aria-label="Next image"
-          className="absolute top-1/2 right-0 z-20 flex h-12 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full bg-black/30 text-white shadow-lg transition-all duration-300 hover:bg-black/70"
+          className="absolute top-1/2 right-0 z-20 flex h-12 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full bg-black/30 text-white shadow-lg transition-all duration-500 hover:bg-black/70"
         >
           <svg
             stroke="currentColor"
@@ -175,6 +209,34 @@ function HomePage() {
               {category.name}
             </Link>
           ))}
+        </div>
+      </section>
+
+      <section className="space-y-5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
+            New arrivals
+          </h2>
+          <Link
+            to="/shop?sort=newest"
+            className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+          >
+            View all
+          </Link>
+        </div>
+
+        <div className="flex gap-y-4 gap-2 flex-wrap justify-between sm:justify-around">
+          {newArrivals.length > 0 ? (
+            newArrivals
+              .toSpliced(5, 2)
+              .map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))
+          ) : (
+            <p className="text-slate-500 text-center w-full py-8">
+              No new arrivals yet.
+            </p>
+          )}
         </div>
       </section>
 

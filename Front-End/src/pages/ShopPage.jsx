@@ -23,6 +23,7 @@ function ProductSkeleton() {
 
 const SORT_OPTIONS = [
   { value: "featured", label: "Sort: Featured" },
+  { value: "newest", label: "Newest Arrivals" },
   { value: "price-asc", label: "Price: Low to High" },
   { value: "price-desc", label: "Price: High to Low" },
   { value: "rating", label: "Top Rated" },
@@ -32,9 +33,10 @@ const SORT_OPTIONS = [
 function ShopPage() {
   const [searchParams] = useSearchParams();
   const selectedCategory = searchParams.get("category") || "";
+  const sortParam = searchParams.get("sort") || "featured";
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sort, setSort] = useState("featured");
+  const [sort, setSort] = useState(sortParam);
   const [page, setPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const [searchInput, setSearchInput] = useState("");
@@ -46,6 +48,13 @@ function ShopPage() {
   const PAGE_SIZE = 24;
 
   const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
+
+  const pageWindowStart = Math.max(1, page - 2);
+  const pageWindowEnd = Math.min(totalPages, page + 2);
+  const visiblePages = Array.from(
+    { length: pageWindowEnd - pageWindowStart + 1 },
+    (_, index) => pageWindowStart + index,
+  );
 
   const handleSearch = () => {
     setLoading(true);
@@ -70,7 +79,9 @@ function ShopPage() {
             ? { sortBy: "rating", sort: "desc" }
             : sort === "popular"
               ? { sortBy: "popular", sort: "desc" }
-              : { sortBy: "featured", sort: "desc" };
+              : sort === "newest"
+                ? { sortBy: "createdAt", sort: "desc" }
+                : { sortBy: "featured", sort: "desc" };
 
     getProductsPage({
       page,
@@ -256,7 +267,7 @@ function ShopPage() {
         <p className="text-slate-500">
           Page {page} of {totalPages}
         </p>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => {
               setLoading(true);
@@ -267,6 +278,60 @@ function ShopPage() {
           >
             Previous
           </button>
+
+          {pageWindowStart > 1 && (
+            <>
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  setPage(1);
+                }}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 font-semibold text-slate-700"
+              >
+                1
+              </button>
+              {pageWindowStart > 2 && (
+                <span className="px-1 text-slate-400">…</span>
+              )}
+            </>
+          )}
+
+          {visiblePages.map((pageNumber) => (
+            <button
+              key={pageNumber}
+              onClick={() => {
+                if (pageNumber === page) return;
+                setLoading(true);
+                setPage(pageNumber);
+              }}
+              disabled={pageNumber === page}
+              className={`rounded-lg border px-3 py-1.5 font-semibold ${
+                pageNumber === page
+                  ? "border-indigo-600 bg-indigo-600 text-white"
+                  : "border-slate-300 text-slate-700"
+              }`}
+            >
+              {pageNumber}
+            </button>
+          ))}
+
+          {pageWindowEnd < totalPages && (
+            <>
+              {pageWindowEnd < totalPages - 1 && (
+                <span className="px-1 text-slate-400">…</span>
+              )}
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  setPage(totalPages);
+                }}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 font-semibold text-slate-700"
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+
           <button
             onClick={() => {
               setLoading(true);

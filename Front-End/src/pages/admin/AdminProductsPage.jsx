@@ -12,6 +12,7 @@ const EMPTY_FORM = {
   price: "",
   stock: "",
   description: "",
+  image: "",
 };
 
 const categories = [
@@ -111,6 +112,7 @@ function AdminProductsPage() {
       price: product?.price ?? "",
       stock: product?.stock ?? "",
       description: product?.description || "",
+      image: product?.image || "",
     });
     setFormError("");
     setShowForm(true);
@@ -137,6 +139,7 @@ function AdminProductsPage() {
         price: Number(formData.price),
         stock: Number(formData.stock),
         description: formData.description,
+        image: formData.image,
       };
 
       if (editProduct?.id) {
@@ -485,6 +488,37 @@ function AdminProductsPage() {
                   disabled={saving}
                   className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 resize-none"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-slate-700">
+                  Image URL
+                </label>
+                <input
+                  type="text"
+                  value={formData.image}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      image: e.target.value,
+                    }))
+                  }
+                  placeholder="https://example.com/image.jpg"
+                  disabled={saving}
+                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                />
+                {formData.image && (
+                  <div className="mt-2">
+                    <img
+                      src={formData.image}
+                      alt="Preview"
+                      className="h-20 w-20 rounded-xl object-cover border border-slate-200"
+                      onError={(e) => {
+                        e.target.src =
+                          "https://via.placeholder.com/80?text=Invalid+Image";
+                      }}
+                    />
+                  </div>
+                )}
               </div>
               {formError && (
                 <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
