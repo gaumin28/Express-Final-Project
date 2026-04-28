@@ -127,7 +127,7 @@ function ContactPage() {
                   <p className="text-sm text-slate-600">
                     123 Shopping Street
                     <br />
-                    New York, NY 10001
+                    HCM, Vietnam
                   </p>
                 </div>
               </div>
